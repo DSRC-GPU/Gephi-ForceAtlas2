@@ -118,7 +118,7 @@ public class ForceAtlas2Printer {
         });
 
         for (Node n : g.getNodes()) {
-            System.out.println(n.getId() + " " + n.getNodeData().x() + " " + n.getNodeData().y());
+            System.out.printf("%s %.15f %.15f\n", n.getNodeData().getId(), n.getNodeData().x(), n.getNodeData().y());
         }
 
         System.out.println("");
