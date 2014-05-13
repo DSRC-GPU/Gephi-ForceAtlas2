@@ -56,6 +56,8 @@ public class ForceAtlas2Printer {
         layout.setGraphModel(graphModel);
         layout.initAlgo();
         layout.resetPropertiesValues();
+        layout.setEdgeWeightInfluence(0d);
+        layout.setScalingRatio(1d);
 
         Graph g = graphModel.getGraph();
         for (Node n : g.getNodes()) {
