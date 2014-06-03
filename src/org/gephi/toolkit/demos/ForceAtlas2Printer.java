@@ -56,6 +56,8 @@ public class ForceAtlas2Printer {
         layout.setGraphModel(graphModel);
         layout.initAlgo();
         layout.resetPropertiesValues();
+        layout.setEdgeWeightInfluence(0d);
+        layout.setScalingRatio(1d);
 
         Graph g = graphModel.getGraph();
         for (Node n : g.getNodes()) {
@@ -116,7 +118,7 @@ public class ForceAtlas2Printer {
         });
 
         for (Node n : g.getNodes()) {
-            System.out.println(n.getId() + " " + n.getNodeData().x() + " " + n.getNodeData().y());
+            System.out.printf("%s %.15f %.15f\n", n.getNodeData().getId(), n.getNodeData().x(), n.getNodeData().y());
         }
 
         System.out.println("");
