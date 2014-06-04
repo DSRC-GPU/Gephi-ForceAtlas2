@@ -13,10 +13,12 @@ public class Simulation {
         EmbeddingStage embedingStage = new EmbeddingStage(Embedding_type, ForceAtlas_iters, ForceAtlas_useEdgeWeights);
         VelocityProcessorStage velocityProcessor = new VelocityProcessorStage(VelocityVector_timeWindow);
         SmootheningStage smootheningStage = new SmootheningStage(Smoothening_noRounds, Smoothening_phi, Smoothening_averageMethod);
+        GraphPrinter graphPrinter = new GraphPrinter();
 
         embedingStage.setup();
         velocityProcessor.setup();
         smootheningStage.setup();
+        graphPrinter.setup();
 
         DynamicGraphIterator dynamicGraphIterator = new DynamicGraphIterator(GraphIterator_step, GraphIterator_duration);
 
@@ -42,11 +44,13 @@ public class Simulation {
             embedingStage.run(from, to, hasChanged);
             velocityProcessor.run(from, to, hasChanged);
             smootheningStage.run(from, to, hasChanged);
+            graphPrinter.run(from, to, hasChanged);
             System.err.println("");
         }
 
         System.err.println("hasChanged: " + count);
 
+        graphPrinter.tearDown();
         smootheningStage.tearDown();
         velocityProcessor.tearDown();
         embedingStage.tearDown();
