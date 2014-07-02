@@ -1,4 +1,4 @@
-package org.gephi.toolkit.demos;
+package crowdlanes.stages;
 
 public abstract class PipelineStage {
 

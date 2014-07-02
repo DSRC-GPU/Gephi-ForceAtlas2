@@ -1,11 +1,11 @@
-package org.gephi.toolkit.demos;
+package crowdlanes;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import org.gephi.data.attributes.type.FloatList;
 import org.gephi.graph.api.Node;
-import static org.gephi.toolkit.demos.GraphUtil.getVector;
+import static crowdlanes.GraphUtil.getVector;
 
 public class SpeedGroupSimilarity {
 

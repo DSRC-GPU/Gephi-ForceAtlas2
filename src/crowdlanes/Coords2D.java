@@ -1,4 +1,4 @@
-package org.gephi.toolkit.demos;
+package crowdlanes;
 
 public class Coords2D {
 

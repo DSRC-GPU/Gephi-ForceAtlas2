@@ -1,9 +1,8 @@
-package org.gephi.toolkit.demos;
+package crowdlanes;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.reflect.Field;
-import java.util.Random;
 import org.gephi.data.attributes.type.TimeInterval;
 import org.gephi.dynamic.DynamicModelImpl;
 import org.gephi.dynamic.api.DynamicController;
@@ -32,6 +31,7 @@ public final class GraphReader {
     private FilterProcessor processor;
     private FilterController filterController;
     private GraphModel graphModel;
+    private GraphView crrGraph;
     private Query dynamicQuery;
     private boolean init;
     private File file;
@@ -49,9 +49,9 @@ public final class GraphReader {
         importGraph(gexfFile);
         setupDynamicProcessor();
         graphModel = Lookup.getDefault().lookup(GraphController.class).getModel();
-        setupNodes();
         init = true;
         hasChanged = true;
+        crrGraph = graphModel.copyView(graphModel.getVisibleView());
     }
 
     public File getFile() {
@@ -60,17 +60,6 @@ public final class GraphReader {
 
     public boolean hasChanged() {
         return hasChanged;
-    }
-
-    private void setupNodes() {
-        int seed = 42;
-        Random generator = new Random(seed);
-        for (Node n : graphModel.getGraph().getNodes()) {
-            float x = (float) ((0.01 + generator.nextDouble()) * 1000) - 500;
-            float y = (float) ((0.01 + generator.nextDouble()) * 1000) - 500;
-            n.getNodeData().setX(x);
-            n.getNodeData().setY(y);
-        }
     }
 
     private boolean hasChanged(Graph newGraph, Graph crrGraph) {
@@ -118,8 +107,7 @@ public final class GraphReader {
         if (!init) {
             throw new IllegalStateException("GraphReader has not been initialized");
         }
-
-        Graph g = graphModel.getGraphVisible();
+        Graph g = graphModel.getGraph(crrGraph);
 
         try {
             Field f = model.getClass().getDeclaredField("visibleTimeInterval");
@@ -128,11 +116,12 @@ public final class GraphReader {
         } catch (Exception ex) {
             Exceptions.printStackTrace(ex);
         }
-        
+
         dynamicQuery = filterController.createQuery(dynamicRangeFilter);
         GraphView gv = filterController.filter(dynamicQuery);
         hasChanged = hasChanged(g, graphModel.getGraph(gv));
         graphModel.setVisibleView(gv);
+        crrGraph = graphModel.copyView(graphModel.getVisibleView());
 
         return graphModel.getGraphVisible();
     }

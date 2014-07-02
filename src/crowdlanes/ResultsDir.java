@@ -1,4 +1,4 @@
-package org.gephi.toolkit.demos;
+package crowdlanes;
 
 import java.io.File;
 import java.io.IOException;

@@ -1,4 +1,4 @@
-package org.gephi.toolkit.demos;
+package crowdlanes;
 
 import org.gephi.data.attributes.type.FloatList;
 
@@ -13,7 +13,8 @@ public class CosineSimilarity {
             return Double.NaN;
         }
 
-        return dotProduct(v1, v2) / (mag1 * mag2);
+        double cs = dotProduct(v1, v2) / mag1 / mag2;
+        return Math.max(-1.0, Math.min(1.0, cs));
     }
 
     public static double similarity(FloatList l1, FloatList l2) {
@@ -21,6 +22,7 @@ public class CosineSimilarity {
 
         x1 = l1.getItem(0);
         x2 = l2.getItem(0);
+
         y1 = l1.getItem(1);
         y2 = l2.getItem(1);
 
@@ -31,7 +33,8 @@ public class CosineSimilarity {
             return Double.NaN;
         }
 
-        return dotProduct(l1, l2) / (mag1 * mag2);
+        double cs = dotProduct(l1, l2) / mag1 / mag2;
+        return Math.max(-1.0, Math.min(1.0, cs));
     }
 
     public static double dotProduct(FloatList l1, FloatList l2) {

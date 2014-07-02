@@ -1,4 +1,4 @@
-package org.gephi.toolkit.demos;
+package crowdlanes;
 
 import java.io.FileNotFoundException;
 import org.gephi.data.attributes.api.AttributeColumn;
@@ -38,18 +38,21 @@ public class EdgeWeight {
             Object obj = edge.getEdgeData().getAttributes().getValue(edgeColumn.getIndex());
             if (obj != null) {
                 TimeInterval timeInterval = (TimeInterval) obj;
+                weight = timeInterval.getValues(from, to).size();
+                /*
                 for (int i = (int) from; i < (int) to; i++) {
                     if (timeInterval.isInRange(i, i)) {
                         weight += 1;
                     }
                 }
+                */
             }
         }
         return weight;
     }
     
     public double getEdgeWeightRatio(double from, double to, Edge edge) {
-        double duration = (int) to - (int) from;
+        double duration = to - from;
         return getEdgeWeighForInterval(from, to, edge) / duration;
     }
 
