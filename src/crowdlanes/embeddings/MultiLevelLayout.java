@@ -18,6 +18,7 @@ import org.openide.util.NbBundle;
  */
 public class MultiLevelLayout extends AbstractLayout implements Layout {
 
+    private Integer randomLayoutSeed;
     private HierarchicalGraph graph;
     private int level;
     private YifanHuLayout layout;
@@ -34,8 +35,9 @@ public class MultiLevelLayout extends AbstractLayout implements Layout {
     private int initedView;
 
     public MultiLevelLayout(LayoutBuilder layoutBuilder,
-            CoarseningStrategy coarseningStrategy) {
+            CoarseningStrategy coarseningStrategy, Integer seed) {
         super(layoutBuilder);
+        this.randomLayoutSeed = seed;
         this.coarseningStrategy = coarseningStrategy;
         //     this.yifanHu = new YifanHu();
         this.yifanHu = new YifanHuProportional();
@@ -57,12 +59,12 @@ public class MultiLevelLayout extends AbstractLayout implements Layout {
             }
         }
 
-        /*
-        Layout random = new RandomLayout(null, 1000);
+        
+        Layout random = new RandomLayout(null, randomLayoutSeed, 1000);
         random.setGraphModel(graphModel);
         random.initAlgo();
         random.goAlgo();
-        */
+        
         initYifanHu();
     }
 

@@ -6,11 +6,15 @@ import org.gephi.graph.api.Edge;
 import org.gephi.graph.api.HierarchicalGraph;
 import org.gephi.graph.api.Node;
 
-
 public class MaximalMatchingCoarsening implements org.gephi.layout.plugin.multilevel.MultiLevelLayout.CoarseningStrategy {
-    
-    private static Random rand = new Random(42);
 
+    private final Random rand;
+
+    public MaximalMatchingCoarsening(Integer seed) {
+        rand = (seed == null) ? new Random() : new Random(seed);
+    }
+
+    @Override
     public void coarsen(HierarchicalGraph g) {
         HierarchicalGraph graph = g;
         int retract = 0;
@@ -32,6 +36,7 @@ public class MaximalMatchingCoarsening implements org.gephi.layout.plugin.multil
         }
     }
 
+    @Override
     public void refine(HierarchicalGraph graph) {
         double r = 10;
         int count = 0;
@@ -56,4 +61,3 @@ public class MaximalMatchingCoarsening implements org.gephi.layout.plugin.multil
         //System.out.println("REFINED = " + refined);
     }
 }
-

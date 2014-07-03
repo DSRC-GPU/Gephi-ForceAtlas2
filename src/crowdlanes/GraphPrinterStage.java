@@ -24,14 +24,14 @@ import org.gephi.statistics.plugin.ConnectedComponents;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 
-public class GraphPrinter extends PipelineStage {
+public class GraphPrinterStage extends PipelineStage {
 
     private int step;
     private PrintWriter writer_nodes;
     private PrintWriter writer_edges;
     private final GraphModel graphModel;
 
-    public GraphPrinter() {
+    public GraphPrinterStage() {
         graphModel = Lookup.getDefault().lookup(GraphController.class).getModel();
     }
 
@@ -56,8 +56,8 @@ public class GraphPrinter extends PipelineStage {
             FloatList velocity = getVector(n, VelocityProcessorStage.VELOCITY_VECTOR);
             FloatList velocitySmoothened1 = getVector(n, SmootheningStage.FINE_SMOOTHENING);
             FloatList velocitySmoothened2 = getVector(n, SmootheningStage.COARSE_SMOOTHENING);
-            double phi_fine = (Double) n.getAttributes().getValue(PCAStage.PCA_PHI_FINE);
-            double phi_coarse = (Double) n.getAttributes().getValue(PCAStage.PCA_PHI_COARSE);
+            double phi_fine = 0; //(Double) n.getAttributes().getValue(PCAStage.PCA_PHI_FINE);
+            double phi_coarse = 0; //(Double) n.getAttributes().getValue(PCAStage.PCA_PHI_COARSE);
 
             writer_nodes.print(id + " " + g + " " + cc);
             writer_nodes.print(" (" + n.getNodeData().x() + "," + n.getNodeData().y() + ")");

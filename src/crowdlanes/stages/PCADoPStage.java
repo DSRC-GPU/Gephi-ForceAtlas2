@@ -23,6 +23,7 @@ public class PCADoPStage extends PipelineStage {
     private int correct_cuts;
     private int missed_cuts;
     private GraphModel graphModel;
+    private PCAStage pcaStage;
     private final float phi1;
     private final float phi2;
 
@@ -31,6 +32,7 @@ public class PCADoPStage extends PipelineStage {
             throw new IllegalArgumentException("phi1 value must be smaller then phi2");
         }
 
+        pcaStage = new PCAStage();
         this.phi1 = phi1;
         this.phi2 = phi2;
 
@@ -63,6 +65,7 @@ public class PCADoPStage extends PipelineStage {
     @Override
     public void run(double from, double to, boolean hasChanged) {
 
+        pcaStage.run(from, to, hasChanged);
         Graph g = graphModel.getGraphVisible();
         for (Node n : g.getNodes()) {
             Double fine = (Double) n.getAttributes().getValue(PCAStage.PCA_PHI_FINE);
@@ -167,9 +170,14 @@ public class PCADoPStage extends PipelineStage {
         total_incorrect_cuts = 0;
         total_correct_cuts = 0;
         total_missed_cuts = 0;
+        pcaStage.setup();
     }
 
     @Override
     public void tearDown() {
+        pcaStage.tearDown();
+        System.err.println("total incorrect cuts: " + getIncorrectCuts());
+        System.err.println("total correct cuts: " + getCorrectCuts());
+        System.err.println("total missed cuts: " + getMissedCuts());
     }
 }

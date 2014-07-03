@@ -1,33 +1,30 @@
 package crowdlanes;
 
 import crowdlanes.stages.*;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import org.gephi.filters.api.Range;
 import org.gephi.graph.api.Graph;
 
 public class Simulation {
 
-    public void run(String Embedding_type, int ForceAtlas_iters, boolean ForceAtlas_useEdgeWeights,
+    public void run(Integer Embedding_seed, String Embedding_type, int ForceAtlas_iters, boolean ForceAtlas_useEdgeWeights,
             int VelocityVector_timeWindow, int Smoothening_noRounds, float Smoothening_phi1, float Smoothening_phi2,
             String Smoothening_averageMethod, double GraphIterator_step, double GraphIterator_duration) throws IllegalAccessException {
 
-        EmbeddingStage embedingStage = new EmbeddingStage(Embedding_type, ForceAtlas_iters, ForceAtlas_useEdgeWeights);
-        VelocityProcessorStage velocityProcessor = new VelocityProcessorStage(VelocityVector_timeWindow);
-        SmootheningStage smootheningStage1 = new SmootheningStage(Smoothening_noRounds, Smoothening_phi1, Smoothening_averageMethod, SmootheningStage.FINE_SMOOTHENING);
-        SmootheningStage smootheningStage2 = new SmootheningStage(Smoothening_noRounds, Smoothening_phi2, Smoothening_averageMethod, SmootheningStage.COARSE_SMOOTHENING);
-        PCAStage pcaStage = new PCAStage();
-        DoPStage dopStage = new DoPStage(Smoothening_phi1, Smoothening_phi2);
-        PCADoPStage pcaDopStage = new PCADoPStage(Smoothening_phi1, Smoothening_phi2);
-        GraphPrinter graphPrinter = new GraphPrinter();
+        List<PipelineStage> pipeline = new ArrayList<>();
+        pipeline.add(new EmbeddingStage(Embedding_seed, Embedding_type, ForceAtlas_iters, ForceAtlas_useEdgeWeights));
+        pipeline.add(new VelocityProcessorStage(VelocityVector_timeWindow));
+        pipeline.add(new SmootheningStage(Smoothening_noRounds, Smoothening_phi1, Smoothening_averageMethod, SmootheningStage.FINE_SMOOTHENING));
+        pipeline.add(new SmootheningStage(Smoothening_noRounds, Smoothening_phi2, Smoothening_averageMethod, SmootheningStage.COARSE_SMOOTHENING));
+        pipeline.add(new DoPStageCoords(Smoothening_phi1, Smoothening_phi2));
+        pipeline.add(new PCADoPStage(Smoothening_phi1, Smoothening_phi2));
+        pipeline.add(new GraphPrinterStage());
 
-        embedingStage.setup();
-        velocityProcessor.setup();
-        smootheningStage1.setup();
-        smootheningStage2.setup();
-        dopStage.setup();
-        //pcaStage.setup();
-        //pcaDopStage.setup();
-        graphPrinter.setup();
+        for (PipelineStage ps : pipeline) {
+            ps.setup();
+        }
 
         DynamicGraphIterator dynamicGraphIterator = new DynamicGraphIterator(GraphIterator_step, GraphIterator_duration);
 
@@ -46,39 +43,24 @@ public class Simulation {
             System.err.println("edgeCount: " + g.getEdgeCount());
             System.err.println("hasChanged: " + hasChanged);
             if (!hasChanged) {
+                System.err.println("");
                 continue;
             } else {
                 count++;
             }
 
-            embedingStage.run(from, to, hasChanged);
-            System.err.println("CC size: "  + GraphUtil.getCC().getConnectedComponentsCount());
-            velocityProcessor.run(from, to, hasChanged);
-            if (count > 1) {
-                smootheningStage1.run(from, to, hasChanged);
-                smootheningStage2.run(from, to, hasChanged);
-
-                //pcaStage.run(from, to, hasChanged);
-                //pcaDopStage.run(from, to, hasChanged);
-                graphPrinter.run(from, to, hasChanged);
-                dopStage.run(from, to, hasChanged);
+            for (PipelineStage ps : pipeline) {
+                ps.run(from, to, hasChanged);
             }
-
+            
             System.err.println("");
         }
 
         System.err.println("hasChanged: " + count);
-        System.err.println("total incorrect cuts: " + pcaDopStage.getIncorrectCuts());
-        System.err.println("total correct cuts: " + pcaDopStage.getCorrectCuts());
-        System.err.println("total missed cuts: " + pcaDopStage.getMissedCuts());
 
-        graphPrinter.tearDown();
-        pcaDopStage.tearDown();
-        pcaStage.tearDown();
-        //dopStage.tearDown();
-        smootheningStage1.tearDown();
-        smootheningStage2.tearDown();
-        velocityProcessor.tearDown();
-        embedingStage.tearDown();
+        for (int i = pipeline.size(); i > 0; i--) {
+            pipeline.get(i).tearDown();
+        }
+
     }
 }

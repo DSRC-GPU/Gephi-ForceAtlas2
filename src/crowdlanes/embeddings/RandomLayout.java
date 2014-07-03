@@ -1,6 +1,5 @@
 package crowdlanes.embeddings;
 
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -23,14 +22,11 @@ public class RandomLayout extends AbstractLayout implements Layout {
     private boolean converged;
     private double size;
 
-    public RandomLayout(LayoutBuilder layoutBuilder,  Long seed, double size) {
+    public RandomLayout(LayoutBuilder layoutBuilder, Integer seed, double size) {
         super(layoutBuilder);
         this.size = size;
-        random = new Random();
-        if (seed != null)
-            random = new Random(seed);
-        else
-            random = new Random();
+        random = (seed != null) ? new Random(seed) : new Random();
+
     }
 
     public void initAlgo() {
@@ -59,7 +55,7 @@ public class RandomLayout extends AbstractLayout implements Layout {
         List<LayoutProperty> properties = new ArrayList<LayoutProperty>();
         try {
             properties.add(LayoutProperty.createProperty(
-                    this, Double.class, 
+                    this, Double.class,
                     NbBundle.getMessage(getClass(), "Random.spaceSize.name"),
                     null,
                     "Random.spaceSize.name",

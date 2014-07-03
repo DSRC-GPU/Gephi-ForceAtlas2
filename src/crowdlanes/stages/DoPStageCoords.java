@@ -14,7 +14,7 @@ import org.gephi.graph.api.GraphModel;
 import org.gephi.graph.api.Node;
 import org.openide.util.Lookup;
 
-public class DoPStage extends PipelineStage {
+public class DoPStageCoords extends PipelineStage {
 
     public final static String EDGE_CUT = "Edge_Cut";
     public final static String RESULT_VECTOR_COORDS = "DoPCoords";
@@ -31,11 +31,10 @@ public class DoPStage extends PipelineStage {
     private final float phi1;
     private final float phi2;
 
-    public DoPStage(float phi1, float phi2) {
+    public DoPStageCoords(float phi1, float phi2) {
         if (phi1 > phi2) {
             throw new IllegalArgumentException("phi1 value must be smaller then phi2");
         }
-
         this.phi1 = phi1;
         this.phi2 = phi2;
 
@@ -107,7 +106,7 @@ public class DoPStage extends PipelineStage {
         for (Node n : g.getNodes()) {
             FloatList fine = getVector(n, SmootheningStage.FINE_SMOOTHENING);
             FloatList coarse = getVector(n, SmootheningStage.COARSE_SMOOTHENING);
-            computeDopCoords(n, fine, coarse);
+            computeDop(n, fine, coarse);
         }
 
         setEdgesStatus(g);
@@ -119,7 +118,7 @@ public class DoPStage extends PipelineStage {
         System.err.println("Missed cuts: " + missed_cuts);
     }
 
-    private void computeDopCoords(Node n, FloatList fine, FloatList coarse) {
+    private void computeDop(Node n, FloatList fine, FloatList coarse) {
         float x = coarse.getItem(0) - fine.getItem(0);
         float y = coarse.getItem(1) - fine.getItem(1);
         n.getAttributes().setValue(RESULT_VECTOR_COORDS, new FloatList(new float[]{x, y}));
@@ -146,7 +145,9 @@ public class DoPStage extends PipelineStage {
 
     @Override
     public void tearDown() {
-
+        System.err.println("total incorrect cuts: " + getIncorrectCuts());
+        System.err.println("total correct cuts: " + getCorrectCuts());
+        System.err.println("total missed cuts: " + getMissedCuts());
     }
 
 }

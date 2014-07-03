@@ -29,7 +29,7 @@ public class EmbeddingStage extends PipelineStage {
 
     private final boolean useEdgeWeights;
 
-    public EmbeddingStage(String embeddingType, int noIters, boolean useEdgeWeights) {
+    public EmbeddingStage(Integer seed, String embeddingType, int noIters, boolean useEdgeWeights) {
         this.noIters = noIters;
         this.embeddingType = embeddingType;
         this.useEdgeWeights = useEdgeWeights;
@@ -51,17 +51,12 @@ public class EmbeddingStage extends PipelineStage {
                 throw new IllegalArgumentException("Unkown embedding type: " + embeddingType);
         }
 
-        initializeEmbedding();
+        initializeEmbedding(seed);
     }
 
-    private void initializeEmbedding() {
+    private void initializeEmbedding(Integer seed) {
 
-        Layout random = new RandomLayout(null, randomSeed, 1000);
-        random.setGraphModel(graphModel);
-        random.initAlgo();
-        random.goAlgo();
-
-        MultiLevelLayout multiLevelLayout = new MultiLevelLayout(null, new MaximalMatchingCoarsening());
+        MultiLevelLayout multiLevelLayout = new MultiLevelLayout(null, new MaximalMatchingCoarsening(seed), seed);
         multiLevelLayout.resetPropertiesValues();
         multiLevelLayout.setGraphModel(graphModel);
         multiLevelLayout.initAlgo();
