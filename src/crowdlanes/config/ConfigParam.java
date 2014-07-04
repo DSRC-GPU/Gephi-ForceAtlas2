@@ -10,9 +10,6 @@ interface ValueStore extends Iterable {
     void parse(String[] parts);
 }
 
-
-
-
 public class ConfigParam extends HashSet<ConfigParam.Value> {
 
     private ValueStore valueStore;
@@ -73,7 +70,7 @@ public class ConfigParam extends HashSet<ConfigParam.Value> {
         public String getName() {
             return name;
         }
-        
+
         @Override
         public String toString() {
             return this.name + " " + val.toString();
@@ -174,6 +171,10 @@ public class ConfigParam extends HashSet<ConfigParam.Value> {
             return new IteratorValuesImpl();
         }
 
+    }
+
+    public static <T> T convert(Object o, Class<T> clazz) {
+        return clazz.cast(o);
     }
 
     public void read() {

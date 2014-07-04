@@ -1,36 +1,46 @@
 package crowdlanes;
 
+import crowdlanes.config.CurrentConfig;
 import static crowdlanes.config.ParamNames.*;
 import java.util.Iterator;
 import org.gephi.dynamic.api.DynamicController;
 import org.gephi.dynamic.api.DynamicModel;
 import org.gephi.filters.api.Range;
+import org.gephi.graph.api.Edge;
 import org.gephi.graph.api.Graph;
+import org.gephi.graph.api.GraphController;
+import org.gephi.graph.api.GraphModel;
+import org.gephi.graph.api.GraphView;
+import org.gephi.graph.api.Node;
 import org.openide.util.Lookup;
 
 public class DynamicGraphIterator implements Iterable<Graph> {
 
     public final static String SECTION = "GraphIterator";
+    private GraphView crrGraph;
+    private boolean hasChanged;
+    private final GraphModel graphModel;
     private final double step;
     private final double duration;
     private final double min;
     private final double max;
-    private double to;
-    private double from;
-    private boolean someAction;
 
-    public DynamicGraphIterator(Simulation.CurrentConfig cc) {
-        this.step = (double) cc.getValue(CONFIG_PARAM_GRAPH_ITERATOR_STEP);
-        this.duration = (double) cc.getValue(CONFIG_PARAM_GRAPH_ITERATOR_WINDOW_SIZE);
+    private double lastFrom;
+    private double lastTo;
+
+    public DynamicGraphIterator(CurrentConfig cc) {
+        graphModel = Lookup.getDefault().lookup(GraphController.class).getModel();
+        this.step = cc.getDoubleValue(CONFIG_PARAM_GRAPH_ITERATOR_STEP);
+        this.duration = cc.getDoubleValue(CONFIG_PARAM_GRAPH_ITERATOR_WINDOW_SIZE);
         DynamicController dc = Lookup.getDefault().lookup(DynamicController.class);
         DynamicModel model = dc.getModel();
+        crrGraph = graphModel.copyView(graphModel.getVisibleView());
         this.max = model.getMax();
         this.min = model.getMin();
-        from = 0;
     }
 
     public Range getCurrentRange() {
-        return new Range(from, to);
+        return new Range(lastFrom, lastTo);
     }
 
     public double getMin() {
@@ -40,38 +50,96 @@ public class DynamicGraphIterator implements Iterable<Graph> {
     public double getMax() {
         return max;
     }
-    
+
     public boolean hasChanged() {
-        return GraphReader.getInstance().hasChanged();
+        return hasChanged;
+    }
+
+    private boolean hasChanged(Graph newGraph, Graph crrGraph) {
+
+        if (newGraph.getEdgeCount() != crrGraph.getEdgeCount()) {
+            return true;
+        }
+
+        if (newGraph.getNodeCount() != crrGraph.getNodeCount()) {
+            return true;
+        }
+
+        for (Edge e : newGraph.getEdges()) {
+            String id = e.getEdgeData().getId();
+            if (crrGraph.getEdge(id) == null) {
+                return true;
+            }
+        }
+
+        for (Edge e : crrGraph.getEdges()) {
+            String id = e.getEdgeData().getId();
+            if (newGraph.getEdge(id) == null) {
+                return true;
+            }
+        }
+
+        for (Node n : newGraph.getNodes()) {
+            String id = n.getNodeData().getId();
+            if (crrGraph.getNode(id) == null) {
+                return true;
+            }
+        }
+
+        for (Node n : crrGraph.getNodes()) {
+            String id = n.getNodeData().getId();
+            if (newGraph.getNode(id) == null) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public Iterator<Graph> iterator() {
-        from = 0;
-        to = duration;
-        someAction = true;
-        return new Iterator<Graph>() {
+        return new GraphIterator();
+    }
 
-            public boolean hasNext() {
-                return someAction;
+    private class GraphIterator implements Iterator<Graph> {
+
+        private boolean someAction;
+        private double from;
+        private double to;
+
+        public GraphIterator() {
+            from = 0;
+            to = duration;
+            someAction = true;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return someAction;
+        }
+
+        @Override
+        public Graph next() {
+            GraphReader gr = GraphReader.getInstance();
+            Graph g = gr.getGraph(from, to);
+            hasChanged = hasChanged(g, graphModel.getGraph(crrGraph));
+            lastFrom = from;
+            lastTo = to;
+            if (to < max) {
+                from = Math.max(from + step, min);
+                to = Math.min(to + step, max);
+                someAction = true;
+            } else {
+                someAction = false;
             }
 
-            public Graph next() {
-                GraphReader gr = GraphReader.getInstance();
-                Graph g = gr.getGraph(from, to);
-                if (to < max) {
-                    from = Math.max(from + step, min);
-                    to = Math.min(to + step, max);
-                    someAction = true;
-                } else {
-                    someAction = false;
-                }
+            crrGraph = graphModel.copyView(g.getView());
+            return g;
+        }
 
-                return g;
-            }
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
 
-            public void remove() {
-                throw new UnsupportedOperationException("Not supported yet.");
-            }
-        };
     }
 }

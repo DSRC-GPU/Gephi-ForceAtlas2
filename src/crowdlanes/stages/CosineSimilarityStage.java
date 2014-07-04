@@ -8,7 +8,7 @@ package crowdlanes.stages;
 import crowdlanes.CosineGroupSimilarity;
 import crowdlanes.GraphUtil;
 import crowdlanes.ResultsDir;
-import crowdlanes.Simulation;
+import crowdlanes.config.CurrentConfig;
 import java.io.File;
 import java.io.PrintWriter;
 import org.openide.util.Exceptions;
@@ -38,7 +38,7 @@ public class CosineSimilarityStage extends PipelineStage {
     }
 
     @Override
-    public void setup(Simulation.CurrentConfig cc) {
+    public void setup(CurrentConfig cc) {
         try {
             File resultsDir = ResultsDir.getCurrentResultPath();
             cosineSimWriter = new PrintWriter(new File(resultsDir, fname), "UTF-8");

@@ -12,12 +12,10 @@ import org.gephi.filters.api.Query;
 import org.gephi.filters.plugin.dynamic.DynamicRangeBuilder;
 import org.gephi.filters.plugin.dynamic.DynamicRangeBuilder.DynamicRangeFilter;
 import org.gephi.filters.spi.FilterBuilder;
-import org.gephi.graph.api.Edge;
 import org.gephi.graph.api.Graph;
 import org.gephi.graph.api.GraphController;
 import org.gephi.graph.api.GraphModel;
 import org.gephi.graph.api.GraphView;
-import org.gephi.graph.api.Node;
 import org.gephi.io.importer.api.Container;
 import org.gephi.io.importer.api.ImportController;
 import org.gephi.project.api.ProjectController;
@@ -31,11 +29,9 @@ public final class GraphReader {
     private FilterProcessor processor;
     private FilterController filterController;
     private GraphModel graphModel;
-    private GraphView crrGraph;
     private Query dynamicQuery;
     private boolean init;
     private File file;
-    private boolean hasChanged;
 
     private static final GraphReader INSTANCE = new GraphReader();
 
@@ -50,64 +46,16 @@ public final class GraphReader {
         setupDynamicProcessor();
         graphModel = Lookup.getDefault().lookup(GraphController.class).getModel();
         init = true;
-        hasChanged = true;
-        crrGraph = graphModel.copyView(graphModel.getVisibleView());
     }
 
     public File getFile() {
         return file;
     }
 
-    public boolean hasChanged() {
-        return hasChanged;
-    }
-
-    private boolean hasChanged(Graph newGraph, Graph crrGraph) {
-
-        if (newGraph.getEdgeCount() != crrGraph.getEdgeCount()) {
-            return true;
-        }
-
-        if (newGraph.getNodeCount() != crrGraph.getNodeCount()) {
-            return true;
-        }
-
-        for (Edge e : newGraph.getEdges()) {
-            String id = e.getEdgeData().getId();
-            if (crrGraph.getEdge(id) == null) {
-                return true;
-            }
-        }
-
-        for (Edge e : crrGraph.getEdges()) {
-            String id = e.getEdgeData().getId();
-            if (newGraph.getEdge(id) == null) {
-                return true;
-            }
-        }
-
-        for (Node n : newGraph.getNodes()) {
-            String id = n.getNodeData().getId();
-            if (crrGraph.getNode(id) == null) {
-                return true;
-            }
-        }
-
-        for (Node n : crrGraph.getNodes()) {
-            String id = n.getNodeData().getId();
-            if (newGraph.getNode(id) == null) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     public Graph getGraph(double from, double to) {
         if (!init) {
             throw new IllegalStateException("GraphReader has not been initialized");
         }
-        Graph g = graphModel.getGraph(crrGraph);
 
         try {
             Field f = model.getClass().getDeclaredField("visibleTimeInterval");
@@ -119,9 +67,7 @@ public final class GraphReader {
 
         dynamicQuery = filterController.createQuery(dynamicRangeFilter);
         GraphView gv = filterController.filter(dynamicQuery);
-        hasChanged = hasChanged(g, graphModel.getGraph(gv));
         graphModel.setVisibleView(gv);
-        crrGraph = graphModel.copyView(graphModel.getVisibleView());
 
         return graphModel.getGraphVisible();
     }

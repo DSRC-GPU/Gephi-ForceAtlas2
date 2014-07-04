@@ -2,6 +2,7 @@ package crowdlanes.config;
 
 import static com.google.common.collect.Sets.cartesianProduct;
 import crowdlanes.Simulation;
+import crowdlanes.config.ConfigParam.Value;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -9,7 +10,7 @@ import java.util.List;
 
 public class ParameterSweeper {
 
-    private List<ConfigParam> params;
+    private final List<ConfigParam> params;
     private final Simulation sim;
 
     private PrintWriter paramWriter;
@@ -20,7 +21,7 @@ public class ParameterSweeper {
     }
 
     public void run() {
-        for (List<ConfigParam.Value> l : cartesianProduct(params)) {
+        for (List<Value> l : cartesianProduct(params)) {
             sim.run(l);
         }
     }

@@ -1,6 +1,6 @@
 package crowdlanes.stages;
 
-import crowdlanes.Simulation.CurrentConfig;
+import crowdlanes.config.CurrentConfig;
 
 public abstract class PipelineStage {
 

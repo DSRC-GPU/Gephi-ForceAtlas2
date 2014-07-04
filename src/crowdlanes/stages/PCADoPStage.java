@@ -1,7 +1,7 @@
 package crowdlanes.stages;
 
 import crowdlanes.GraphUtil;
-import crowdlanes.Simulation.CurrentConfig;
+import crowdlanes.config.CurrentConfig;
 import static crowdlanes.config.ParamNames.*;
 import org.gephi.data.attributes.api.AttributeController;
 import org.gephi.data.attributes.api.AttributeOrigin;
@@ -77,7 +77,6 @@ public class PCADoPStage extends PipelineStage {
 
         setEdgesStatus(g);
         getEdgesStat(g);
-        cutEdges(g);
 
         info("\n");
 
@@ -151,17 +150,6 @@ public class PCADoPStage extends PipelineStage {
         total_missed_cuts += missed_cuts;
     }
 
-    private void cutEdges(Graph g) {
-        Edge[] edges = g.getEdges().toArray();
-        for (Edge e : edges) {
-            Boolean isCut = (Boolean) e.getAttributes().getValue(EDGE_CUT);
-            if (isCut) {
-                g.removeEdge(e);
-            }
-
-        }
-    }
-
     private void setEdgesStatus(Graph g) {
         for (Edge e : g.getEdges()) {
             e.getAttributes().setValue(EDGE_CUT, isEdgeCut(e.getSource(), e.getTarget()));
@@ -171,8 +159,8 @@ public class PCADoPStage extends PipelineStage {
 
     @Override
     public void setup(CurrentConfig cc) {
-        this.phi_fine = (float) cc.getValue(CONFIG_PARAM_SMOOTHENING_PHI_FINE);
-        this.phi_coarse = (float) cc.getValue(CONFIG_PARAM_SMOOTHENING_PHI_COARSE);
+        this.phi_fine = cc.getFloatValue(CONFIG_PARAM_SMOOTHENING_PHI_FINE);
+        this.phi_coarse = cc.getFloatValue(CONFIG_PARAM_SMOOTHENING_PHI_COARSE);
 
         if (phi_fine > phi_coarse) {
             throw new IllegalArgumentException("phi1 value must be smaller then phi2");

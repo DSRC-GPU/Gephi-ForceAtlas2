@@ -1,10 +1,9 @@
 package crowdlanes.stages;
 
 import crowdlanes.GraphUtil;
-import crowdlanes.ResultsDir;
 import static crowdlanes.GraphUtil.getVector;
-import crowdlanes.Simulation;
-import crowdlanes.stages.*;
+import crowdlanes.ResultsDir;
+import crowdlanes.config.CurrentConfig;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -45,19 +44,20 @@ public class GraphPrinterStage extends PipelineStage {
                 return n1.getId() - n2.getId();
             }
         });
+        
 
         writer_nodes.println("NumNodes: " + graphModel.getGraphVisible().getNodeCount());
         for (int i = 0; i < nodes.length; i++) {
             Node n = nodes[i];
             Integer g = (Integer) n.getAttributes().getValue(GraphUtil.GROUP_COLUMN_NAME);
-            Integer cc = 0;//(Integer) n.getAttributes().getValue(groupColumn.getIndex());
+            Integer cc = groupColumn != null ? (Integer) n.getAttributes().getValue(groupColumn.getIndex()) : 1;
             String id = n.getNodeData().getId();
 
             FloatList velocity = getVector(n, VelocityProcessorStage.VELOCITY_VECTOR);
             FloatList velocitySmoothened1 = getVector(n, SmootheningStage.FINE_SMOOTHENING);
             FloatList velocitySmoothened2 = getVector(n, SmootheningStage.COARSE_SMOOTHENING);
-            double phi_fine = 0; //(Double) n.getAttributes().getValue(PCAStage.PCA_PHI_FINE);
-            double phi_coarse = 0; //(Double) n.getAttributes().getValue(PCAStage.PCA_PHI_COARSE);
+            double phi_fine = (Double) n.getAttributes().getValue(PCAStage.PCA_PHI_FINE);
+            double phi_coarse = (Double) n.getAttributes().getValue(PCAStage.PCA_PHI_COARSE);
 
             writer_nodes.print(id + " " + g + " " + cc);
             writer_nodes.print(" (" + n.getNodeData().x() + "," + n.getNodeData().y() + ")");
@@ -89,7 +89,7 @@ public class GraphPrinterStage extends PipelineStage {
     }
 
     @Override
-    public void setup(Simulation.CurrentConfig cc) {
+    public void setup(CurrentConfig cc) {
         try {
             File resultsDir = ResultsDir.getCurrentResultPath();
             writer_nodes = new PrintWriter(new File(resultsDir, "nodes.txt"), "UTF-8");

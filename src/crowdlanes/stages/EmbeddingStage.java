@@ -2,7 +2,7 @@ package crowdlanes.stages;
 
 import static crowdlanes.config.ParamNames.*;
 import crowdlanes.EdgeWeight;
-import crowdlanes.Simulation.CurrentConfig;
+import crowdlanes.config.CurrentConfig;
 import crowdlanes.embeddings.MaximalMatchingCoarsening;
 import crowdlanes.embeddings.MultiLevelLayout;
 import org.gephi.graph.api.GraphController;
@@ -94,10 +94,10 @@ public class EmbeddingStage extends PipelineStage {
     }
 
     public void setup(CurrentConfig cc) {
-        this.seed = (Integer) cc.getValue(CONFIG_PARAM_INITIAL_EMBEDDING_SEED);
-        this.noIters = (int) cc.getValue(CONFIG_PARAM_FORCE_ATLAS_NO_ITER);
-        this.embeddingType = (String) cc.getValue(CONFIG_PARAM_EMBEDDING_TYPE);
-        this.useEdgeWeights = (boolean) cc.getValue(CONFIG_PARAM_FORCE_ATLAS_USE_EDGE_WEIGHTS);
+        this.seed = cc.getIntegerValue(CONFIG_PARAM_INITIAL_EMBEDDING_SEED);
+        this.noIters = cc.getIntegerValue(CONFIG_PARAM_FORCE_ATLAS_NO_ITER);
+        this.embeddingType = cc.getStringValue(CONFIG_PARAM_EMBEDDING_TYPE);
+        this.useEdgeWeights = cc.getBooleanValue(CONFIG_PARAM_FORCE_ATLAS_USE_EDGE_WEIGHTS);
 
         ForceAtlas2 forceAltasLayout = new ForceAtlas2(null);
         YifanHuLayout yifanHuLayout = new YifanHuLayout(null, new StepDisplacement(1f));

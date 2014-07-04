@@ -1,10 +1,9 @@
 package crowdlanes.stages;
 
-import crowdlanes.CosineGroupSimilarity;
 import crowdlanes.GraphUtil;
 import crowdlanes.ResultsDir;
-import crowdlanes.Simulation;
 import crowdlanes.SpeedGroupSimilarity;
+import crowdlanes.config.CurrentConfig;
 import java.io.File;
 import java.io.PrintWriter;
 import org.openide.util.Exceptions;
@@ -29,7 +28,7 @@ public class SpeedSimilarityStage extends PipelineStage {
     }
 
     @Override
-    public void setup(Simulation.CurrentConfig cc) {
+    public void setup(CurrentConfig cc) {
         try {
             File resultsDir = ResultsDir.getCurrentResultPath();
             speedSimWriter = new PrintWriter(new File(resultsDir, fname), "UTF-8");

@@ -2,8 +2,7 @@ package crowdlanes.stages;
 
 import crowdlanes.*;
 import static crowdlanes.config.ParamNames.*;
-import crowdlanes.Simulation.CurrentConfig;
-import crowdlanes.config.ParameterSweeper;
+import crowdlanes.config.CurrentConfig;
 import java.util.HashMap;
 import org.gephi.data.attributes.api.AttributeController;
 import org.gephi.data.attributes.api.AttributeOrigin;
@@ -160,9 +159,9 @@ public class SmootheningStage extends PipelineStage {
         csc.setup(cc);
         sss.setup(cc);
 
-        String averageMethod = (String) cc.getValue(CONFIG_PARAM_SMOOTHENING_AVG_WEIGHTS);
-        this.noRounds = (int) cc.getValue(CONFIG_PARAM_SMOOTHENING_NO_ROUNDS);
-        this.inhibitFactor = (float) cc.getValue(phiName);
+        String averageMethod = cc.getStringValue(CONFIG_PARAM_SMOOTHENING_AVG_WEIGHTS);
+        this.noRounds = cc.getIntegerValue(CONFIG_PARAM_SMOOTHENING_NO_ROUNDS);
+        this.inhibitFactor = cc.getFloatValue(phiName);
 
         switch (averageMethod) {
             case AVG_NORMAL:

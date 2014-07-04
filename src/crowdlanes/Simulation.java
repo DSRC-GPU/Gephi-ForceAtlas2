@@ -1,12 +1,11 @@
 package crowdlanes;
 
-import static crowdlanes.config.ParamNames.*;
-import crowdlanes.stages.GraphPrinterStage;
 import crowdlanes.config.ConfigParam;
-import crowdlanes.config.ParameterSweeper;
+import crowdlanes.config.CurrentConfig;
+import static crowdlanes.config.ParamNames.*;
 import crowdlanes.stages.*;
+import crowdlanes.stages.GraphPrinterStage;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import org.gephi.filters.api.Range;
@@ -24,6 +23,7 @@ public class Simulation {
         pipeline.add(new SmootheningStage(SmootheningStage.COARSE_SMOOTHENING, CONFIG_PARAM_SMOOTHENING_PHI_COARSE));
         //pipeline.add(new DoPStageCoords());
         pipeline.add(new PCADoPStage());
+        pipeline.add(new EdgeCutingAndCCDetectionStage());
         pipeline.add(new GraphPrinterStage());
     }
 
@@ -35,26 +35,25 @@ public class Simulation {
         }
 
         DynamicGraphIterator dynamicGraphIterator = new DynamicGraphIterator(cc);
-        Iterator<Graph> it = dynamicGraphIterator.iterator();
         System.err.println("min: " + dynamicGraphIterator.getMin() + " max: " + dynamicGraphIterator.getMax());
 
-        while (it.hasNext()) {
+        for (Graph g : dynamicGraphIterator) {
             Range r = dynamicGraphIterator.getCurrentRange();
-            Graph g = it.next();
             boolean hasChanged = dynamicGraphIterator.hasChanged();
             System.err.println(r);
             System.err.println("nodeCount: " + g.getNodeCount());
             System.err.println("edgeCount: " + g.getEdgeCount());
             System.err.println("hasChanged: " + hasChanged);
-
             if (!hasChanged) {
                 System.err.println("");
                 continue;
             }
-
+            
+            
             for (PipelineStage ps : pipeline) {
                 ps.run(r.getLowerDouble(), r.getUpperDouble(), hasChanged);
             }
+            
             System.err.println("");
             count++;
         }
@@ -65,21 +64,5 @@ public class Simulation {
             ps.tearDown();
         }
 
-    }
-
-    public static class CurrentConfig {
-
-        HashMap<String, Object> vals;
-
-        public CurrentConfig(List<ConfigParam.Value> paramVals) {
-            vals = new HashMap<>();
-            for (ConfigParam.Value v : paramVals) {
-                vals.put(v.getName(), v.getValue());
-            }
-        }
-
-        public Object getValue(String name) {
-            return vals.get(name);
-        }
     }
 }

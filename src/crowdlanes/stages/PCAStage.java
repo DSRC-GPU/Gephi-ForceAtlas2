@@ -2,6 +2,7 @@ package crowdlanes.stages;
 
 import crowdlanes.GraphUtil;
 import crowdlanes.Simulation;
+import crowdlanes.config.CurrentConfig;
 import la.matrix.DenseMatrix;
 import la.matrix.Matrix;
 import ml.utils.ArrayOperator;
@@ -87,7 +88,7 @@ public class PCAStage extends PipelineStage {
     }
 
     @Override
-    public void setup(Simulation.CurrentConfig cc) {
+    public void setup(CurrentConfig cc) {
 
     }
 

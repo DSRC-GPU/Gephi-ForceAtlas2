@@ -3,7 +3,7 @@ package crowdlanes.stages;
 import static crowdlanes.config.ParamNames.*;
 import crowdlanes.GraphUtil;
 import static crowdlanes.GraphUtil.getVector;
-import crowdlanes.Simulation.CurrentConfig;
+import crowdlanes.config.CurrentConfig;
 import org.gephi.data.attributes.api.AttributeController;
 import org.gephi.data.attributes.api.AttributeOrigin;
 import org.gephi.data.attributes.api.AttributeTable;
@@ -56,16 +56,6 @@ public class DoPStageCoords extends PipelineStage {
         return total_missed_cuts;
     }
 
-    private void cutEdges(Graph g) {
-        Edge[] edges = g.getEdges().toArray();
-        for (Edge e : edges) {
-            Boolean isCut = (Boolean) e.getAttributes().getValue(EDGE_CUT);
-            if (isCut) {
-                g.removeEdge(e);
-            }
-        }
-    }
-
     private void setEdgesStatus(Graph g) {
         for (Edge e : g.getEdges()) {
             e.getAttributes().setValue(EDGE_CUT, isEdgeCut(e.getSource(), e.getTarget()));
@@ -114,7 +104,6 @@ public class DoPStageCoords extends PipelineStage {
 
         setEdgesStatus(g);
         getEdgesStat(g);
-        cutEdges(g);
         info("\n");
 
         System.err.println("Incorrect cuts: " + incorrect_cuts);
@@ -142,8 +131,8 @@ public class DoPStageCoords extends PipelineStage {
 
     @Override
     public void setup(CurrentConfig cc) {
-        this.phi_fine = (float) cc.getValue(CONFIG_PARAM_SMOOTHENING_PHI_FINE);
-        this.phi_coarse = (float) cc.getValue(CONFIG_PARAM_SMOOTHENING_PHI_COARSE);
+        this.phi_fine = cc.getFloatValue(CONFIG_PARAM_SMOOTHENING_PHI_FINE);
+        this.phi_coarse = cc.getFloatValue(CONFIG_PARAM_SMOOTHENING_PHI_COARSE);
 
         if (phi_fine > phi_coarse) {
             throw new IllegalArgumentException("phi1 value must be smaller then phi2");

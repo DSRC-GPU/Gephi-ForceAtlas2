@@ -2,7 +2,7 @@ package crowdlanes.stages;
 
 import com.google.common.collect.EvictingQueue;
 import crowdlanes.*;
-import crowdlanes.Simulation.CurrentConfig;
+import crowdlanes.config.CurrentConfig;
 import static crowdlanes.config.ParamNames.*;
 import java.util.HashMap;
 import org.gephi.data.attributes.api.AttributeController;
@@ -108,7 +108,7 @@ public class VelocityProcessorStage extends PipelineStage {
         sss.setup(cc);
         csc.setup(cc);
 
-        int windowSize = (int) cc.getValue(CONFIG_PARAM_VELOCITY_VEC_WINDOW_SIZE);
+        int windowSize = cc.getIntegerValue(CONFIG_PARAM_VELOCITY_VEC_WINDOW_SIZE);
         if (windowSize < 0) {
             throw new IllegalArgumentException("Window size cannot be negative");
         }
