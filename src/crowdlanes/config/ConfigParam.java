@@ -1,26 +1,32 @@
-package crowdlanes;
+package crowdlanes.config;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Iterator;
 import org.ini4j.Wini;
 
-interface ValueStore<T> extends Iterable {
+interface ValueStore extends Iterable {
 
     void parse(String[] parts);
 }
 
-public class ConfigParam<T extends Comparable> implements Iterable<T> {
+
+
+
+public class ConfigParam extends HashSet<ConfigParam.Value> {
 
     private ValueStore valueStore;
     private final Wini config;
     private final Object sectionName;
+    private final String optionName;
 
-    private final Class<T> clazz;
+    private final Class clazz;
 
-    public ConfigParam(Wini config, Object sectionName, Class<T> clazz) throws IOException {
+    public ConfigParam(Wini config, Object sectionName, Class clazz, String optionName) throws IOException {
         this.clazz = clazz;
         this.config = config;
         this.sectionName = sectionName;
+        this.optionName = optionName;
     }
 
     public static Object toObject(Class clazz, String value) {
@@ -50,7 +56,31 @@ public class ConfigParam<T extends Comparable> implements Iterable<T> {
         throw new IllegalArgumentException("Not supported type: " + clazz.getName());
     }
 
-    private class Ranges implements ValueStore, Iterable {
+    public static class Value {
+
+        private final Object val;
+        private final String name;
+
+        public Value(Object val, String name) {
+            this.val = val;
+            this.name = name;
+        }
+
+        public Object getValue() {
+            return val;
+        }
+
+        public String getName() {
+            return name;
+        }
+        
+        @Override
+        public String toString() {
+            return this.name + " " + val.toString();
+        }
+    }
+
+    private class Ranges implements ValueStore {
 
         private Number start;
         private Number stop;
@@ -65,7 +95,7 @@ public class ConfigParam<T extends Comparable> implements Iterable<T> {
             step = (Number) (parts.length == 3 ? toObject(clazz, parts[2]) : 1);
         }
 
-        private class IteratorRangesImpl implements Iterator<T> {
+        private class IteratorRangesImpl implements Iterator {
 
             private Number crrRange;
 
@@ -79,14 +109,14 @@ public class ConfigParam<T extends Comparable> implements Iterable<T> {
             }
 
             @Override
-            public T next() {
+            public Object next() {
                 Number result = crrRange;
                 crrRange = crrRange instanceof Short ? crrRange.shortValue() + step.shortValue()
                         : crrRange instanceof Integer ? crrRange.shortValue() + step.shortValue()
                         : crrRange instanceof Long ? crrRange.longValue() + step.longValue()
                         : crrRange instanceof Float ? crrRange.floatValue() + step.floatValue()
                         : crrRange instanceof Double ? crrRange.doubleValue() + step.doubleValue() : null;
-                return clazz.cast(result);
+                return result;
             }
 
             @Override
@@ -96,14 +126,14 @@ public class ConfigParam<T extends Comparable> implements Iterable<T> {
         }
 
         @Override
-        public Iterator<T> iterator() {
+        public Iterator iterator() {
             return new IteratorRangesImpl();
         }
     }
 
-    private class Values implements ValueStore, Iterable {
+    private class Values implements ValueStore {
 
-        private T crrValues;
+        private Object crrValues;
         private Object[] vals;
 
         public void parse(String[] parts) {
@@ -114,7 +144,7 @@ public class ConfigParam<T extends Comparable> implements Iterable<T> {
             }
         }
 
-        private class IteratorValuesImpl implements Iterator<T> {
+        private class IteratorValuesImpl implements Iterator {
 
             private int idx;
 
@@ -128,8 +158,8 @@ public class ConfigParam<T extends Comparable> implements Iterable<T> {
             }
 
             @Override
-            public T next() {
-                return (T) vals[idx++];
+            public Object next() {
+                return vals[idx++];
             }
 
             @Override
@@ -140,13 +170,13 @@ public class ConfigParam<T extends Comparable> implements Iterable<T> {
         }
 
         @Override
-        public Iterator<T> iterator() {
+        public Iterator iterator() {
             return new IteratorValuesImpl();
         }
 
     }
 
-    public void read(Object optionName) {
+    public void read() {
         String param = config.get(sectionName, optionName, String.class);
         String parts[] = param.split(":");
         if (parts.length == 1) {
@@ -157,9 +187,8 @@ public class ConfigParam<T extends Comparable> implements Iterable<T> {
         }
 
         valueStore.parse(parts);
-    }
-
-    public Iterator<T> iterator() {
-        return valueStore.iterator();
+        for (Object elem : valueStore) {
+            add(new Value(elem, optionName));
+        }
     }
 }

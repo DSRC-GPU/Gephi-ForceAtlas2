@@ -1,9 +1,10 @@
 package crowdlanes.stages;
 
+import static crowdlanes.config.ParamNames.*;
 import crowdlanes.EdgeWeight;
+import crowdlanes.Simulation.CurrentConfig;
 import crowdlanes.embeddings.MaximalMatchingCoarsening;
 import crowdlanes.embeddings.MultiLevelLayout;
-import crowdlanes.embeddings.RandomLayout;
 import org.gephi.graph.api.GraphController;
 import org.gephi.graph.api.GraphModel;
 import org.gephi.layout.plugin.force.StepDisplacement;
@@ -14,44 +15,22 @@ import org.openide.util.Lookup;
 
 public class EmbeddingStage extends PipelineStage {
 
-    private final static Long randomSeed = 42L;
     public final static String SECTION = "Embedding";
     public final static String YIFANHU_LAYOUT = "YifanHu";
     public final static String FORCE_ATLAS2_LAYOUT = "ForceAtlas2";
 
     private boolean initAlgo;
     private boolean endAlgo;
-    private GraphModel graphModel;
+    private Layout layout;
+    private final GraphModel graphModel;
 
+    private Integer seed;
     private int noIters;
-    private final Layout layout;
-    private final String embeddingType;
+    private String embeddingType;
+    private boolean useEdgeWeights;
 
-    private final boolean useEdgeWeights;
-
-    public EmbeddingStage(Integer seed, String embeddingType, int noIters, boolean useEdgeWeights) {
-        this.noIters = noIters;
-        this.embeddingType = embeddingType;
-        this.useEdgeWeights = useEdgeWeights;
-        ForceAtlas2 forceAltasLayout = new ForceAtlas2(null);
-        YifanHuLayout yifanHuLayout = new YifanHuLayout(null, new StepDisplacement(1f));
-
+    public EmbeddingStage() {
         graphModel = Lookup.getDefault().lookup(GraphController.class).getModel();
-
-        switch (embeddingType) {
-            case YIFANHU_LAYOUT:
-                initYifanHu(yifanHuLayout);
-                layout = yifanHuLayout;
-                break;
-            case FORCE_ATLAS2_LAYOUT:
-                initForceAtlas2(forceAltasLayout);
-                layout = forceAltasLayout;
-                break;
-            default:
-                throw new IllegalArgumentException("Unkown embedding type: " + embeddingType);
-        }
-
-        initializeEmbedding(seed);
     }
 
     private void initializeEmbedding(Integer seed) {
@@ -66,7 +45,6 @@ public class EmbeddingStage extends PipelineStage {
         }
         multiLevelLayout.endAlgo();
     }
-
 
     public void run(double from, double to, boolean hasChanged) {
         info(embeddingType + " Stage: ");
@@ -115,12 +93,34 @@ public class EmbeddingStage extends PipelineStage {
         endAlgo = false;
     }
 
-    public void setup() {
+    public void setup(CurrentConfig cc) {
+        this.seed = (Integer) cc.getValue(CONFIG_PARAM_INITIAL_EMBEDDING_SEED);
+        this.noIters = (int) cc.getValue(CONFIG_PARAM_FORCE_ATLAS_NO_ITER);
+        this.embeddingType = (String) cc.getValue(CONFIG_PARAM_EMBEDDING_TYPE);
+        this.useEdgeWeights = (boolean) cc.getValue(CONFIG_PARAM_FORCE_ATLAS_USE_EDGE_WEIGHTS);
+
+        ForceAtlas2 forceAltasLayout = new ForceAtlas2(null);
+        YifanHuLayout yifanHuLayout = new YifanHuLayout(null, new StepDisplacement(1f));
+
+        switch (embeddingType) {
+            case YIFANHU_LAYOUT:
+                initYifanHu(yifanHuLayout);
+                layout = yifanHuLayout;
+                break;
+            case FORCE_ATLAS2_LAYOUT:
+                initForceAtlas2(forceAltasLayout);
+                layout = forceAltasLayout;
+                break;
+            default:
+                throw new IllegalArgumentException("Unkown embedding type: " + embeddingType);
+        }
+
+        initializeEmbedding(seed);
     }
 
     public void tearDown() {
-        if (layout instanceof ForceAtlas2) {
-            ((ForceAtlas2) layout).endAlgo();
+        if (!endAlgo) {
+            layout.endAlgo();
         }
     }
 }

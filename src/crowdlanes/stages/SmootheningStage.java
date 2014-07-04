@@ -1,8 +1,9 @@
 package crowdlanes.stages;
 
 import crowdlanes.*;
-import java.io.File;
-import java.io.PrintWriter;
+import static crowdlanes.config.ParamNames.*;
+import crowdlanes.Simulation.CurrentConfig;
+import crowdlanes.config.ParameterSweeper;
 import java.util.HashMap;
 import org.gephi.data.attributes.api.AttributeController;
 import org.gephi.data.attributes.api.AttributeOrigin;
@@ -14,7 +15,6 @@ import org.gephi.graph.api.Graph;
 import org.gephi.graph.api.GraphController;
 import org.gephi.graph.api.GraphModel;
 import org.gephi.graph.api.Node;
-import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 
 public class SmootheningStage extends PipelineStage {
@@ -27,24 +27,25 @@ public class SmootheningStage extends PipelineStage {
     private final static String AVG_COSINE_SIM = "cosineSimilarity";
     private final static String AVG_EDGE_WEIGHTS = "edgeWeights";
 
-    private PrintWriter cosineSimWriter;
-    private PrintWriter speedSimWriter;
-    private GraphModel graphModel;
+    private final GraphModel graphModel;
     private boolean normalAverage;
     private boolean cosineSimWeights;
     private boolean edgeWeights;
-    private final int noRounds;
-    private final float inhibitFactor;
+    private int noRounds;
+    private float inhibitFactor;
     private final HashMap<Integer, Coords2D> state;
-    private final SpeedGroupSimilarity speedGroupSimilarity;
-    private final CosineGroupSimilarity cosineGroupSimilarity;
+    private final SpeedSimilarityStage sss;
+    private final CosineSimilarityStage csc;
     private final String resultVector;
+    private final String phiName;
 
-    public SmootheningStage(int noRounds, float inhibitFactor, String averageMethod, String resultVector) throws IllegalAccessException {
-        this.noRounds = noRounds;
-        this.resultVector = resultVector;
-        this.inhibitFactor = inhibitFactor;
+    public SmootheningStage(String resultVector, String phiName) throws IllegalAccessException {
         this.state = new HashMap<>();
+        this.phiName = phiName;
+        this.resultVector = resultVector;
+
+        sss = new SpeedSimilarityStage("speed_sim_" + resultVector, resultVector);
+        csc = new CosineSimilarityStage("cosine_sim_" + resultVector, resultVector);
 
         graphModel = Lookup.getDefault().lookup(GraphController.class).getModel();
         AttributeController attributeController = Lookup.getDefault().lookup(AttributeController.class);
@@ -52,23 +53,6 @@ public class SmootheningStage extends PipelineStage {
         if (nodesTable.hasColumn(resultVector) == false) {
             nodesTable.addColumn(resultVector, AttributeType.LIST_FLOAT, AttributeOrigin.COMPUTED);
         }
-
-        switch (averageMethod) {
-            case AVG_NORMAL:
-                normalAverage = true;
-                break;
-            case AVG_COSINE_SIM:
-                cosineSimWeights = true;
-                break;
-            case AVG_EDGE_WEIGHTS:
-                edgeWeights = true;
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown average method: " + averageMethod);
-        }
-
-        cosineGroupSimilarity = new CosineGroupSimilarity(resultVector);
-        speedGroupSimilarity = new SpeedGroupSimilarity(resultVector);
     }
 
     private void setCosineSimWeight(Edge e) {
@@ -149,10 +133,14 @@ public class SmootheningStage extends PipelineStage {
     }
 
     @Override
-    public void run(double from, double to, boolean hasChanged
-    ) {
-        info("SmootheningStage: ");
+    public void run(double from, double to, boolean hasChanged) {
 
+        if (GraphUtil.isColumnNull(VelocityProcessorStage.VELOCITY_VECTOR)) {
+            return;
+        }
+        
+        info("SmootheningStage: ");
+        
         Graph g = graphModel.getGraphVisible();
         initialize(from, to, g);
         for (int i = 0; i < noRounds; i++) {
@@ -163,37 +151,44 @@ public class SmootheningStage extends PipelineStage {
         }
 
         info("\n");
-
-        cosineSimWriter.println("from " + from + " to " + to);
-        cosineGroupSimilarity.printGroupSimilarity(cosineSimWriter, 1);
-        cosineGroupSimilarity.printGroupSimilarity(cosineSimWriter, 2);
-
-        speedSimWriter.println("from " + from + " to " + to);
-        speedGroupSimilarity.printGroupSimilarity(speedSimWriter, 1);
-        speedGroupSimilarity.printGroupSimilarity(speedSimWriter, 2);
-
+        csc.run(from, to, hasChanged);
+        sss.run(from, to, hasChanged);
     }
 
     @Override
-    public void setup() {
+    public void setup(CurrentConfig cc) {
+        csc.setup(cc);
+        sss.setup(cc);
+
+        String averageMethod = (String) cc.getValue(CONFIG_PARAM_SMOOTHENING_AVG_WEIGHTS);
+        this.noRounds = (int) cc.getValue(CONFIG_PARAM_SMOOTHENING_NO_ROUNDS);
+        this.inhibitFactor = (float) cc.getValue(phiName);
+
+        switch (averageMethod) {
+            case AVG_NORMAL:
+                normalAverage = true;
+                break;
+            case AVG_COSINE_SIM:
+                cosineSimWeights = true;
+                break;
+            case AVG_EDGE_WEIGHTS:
+                edgeWeights = true;
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown average method: " + averageMethod);
+        }
+
         state.clear();
         for (Node n : graphModel.getGraph().getNodes()) {
             state.put(n.getId(), new Coords2D());
             n.getAttributes().setValue(resultVector, null);
         }
 
-        try {
-            File resultsDir = ResultsDir.getCurrentResultPath();
-            cosineSimWriter = new PrintWriter(new File(resultsDir, "cosine_sim_" + resultVector), "UTF-8");
-            speedSimWriter = new PrintWriter(new File(resultsDir, "speed_sim_" + resultVector), "UTF-8");
-        } catch (Exception ex) {
-            Exceptions.printStackTrace(ex);
-        }
     }
 
     @Override
     public void tearDown() {
-        cosineSimWriter.close();
-        speedSimWriter.close();
+        csc.tearDown();
+        sss.tearDown();
     }
 }

@@ -1,10 +1,10 @@
 package crowdlanes.stages;
 
+import com.google.common.collect.EvictingQueue;
 import crowdlanes.*;
-import java.io.File;
-import java.io.PrintWriter;
+import crowdlanes.Simulation.CurrentConfig;
+import static crowdlanes.config.ParamNames.*;
 import java.util.HashMap;
-import java.util.LinkedList;
 import org.gephi.data.attributes.api.AttributeController;
 import org.gephi.data.attributes.api.AttributeOrigin;
 import org.gephi.data.attributes.api.AttributeTable;
@@ -14,7 +14,6 @@ import org.gephi.graph.api.Graph;
 import org.gephi.graph.api.GraphController;
 import org.gephi.graph.api.GraphModel;
 import org.gephi.graph.api.Node;
-import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 
 public class VelocityProcessorStage extends PipelineStage {
@@ -22,24 +21,17 @@ public class VelocityProcessorStage extends PipelineStage {
     public final static String SECTION = "VelocityVector";
     public final static String VELOCITY_VECTOR = "VelocityVector";
 
-    private final HashMap<String, LinkedList<Coords2D>> velocityVectors;
-    private final SpeedGroupSimilarity speedGroupSimilarity;
-    private final CosineGroupSimilarity cosineGroupSimilarity;
-    private PrintWriter cosineSimWriter;
-    private PrintWriter speedSimWriter;
+    private final HashMap<String, EvictingQueue<Coords2D>> velocityVectors;
+    private final SpeedSimilarityStage sss;
+    private final CosineSimilarityStage csc;
     private int crrWindowSize;
-    private final int windowSize;
     private final GraphModel graphModel;
 
-    public VelocityProcessorStage(int windowSize) {
-        if (windowSize < 0) {
-            throw new IllegalArgumentException("Window size cannot be negative");
-        }
+    public VelocityProcessorStage() {
 
-        this.windowSize = windowSize;
         velocityVectors = new HashMap<>();
-        cosineGroupSimilarity = new CosineGroupSimilarity(VELOCITY_VECTOR);
-        speedGroupSimilarity = new SpeedGroupSimilarity((VELOCITY_VECTOR));
+        sss = new SpeedSimilarityStage("speed_sim", VELOCITY_VECTOR);
+        csc = new CosineSimilarityStage("cosine_sim", VELOCITY_VECTOR);
         graphModel = Lookup.getDefault().lookup(GraphController.class).getModel();
 
         AttributeController attributeController = Lookup.getDefault().lookup(AttributeController.class);
@@ -47,12 +39,11 @@ public class VelocityProcessorStage extends PipelineStage {
         if (nodesTable.hasColumn(VELOCITY_VECTOR) == false) {
             nodesTable.addColumn(VELOCITY_VECTOR, AttributeType.LIST_FLOAT, AttributeOrigin.COMPUTED);
         }
-
     }
 
     private void setAverageVelocity(Node n) {
         String id = n.getNodeData().getId();
-        LinkedList<Coords2D> vec = velocityVectors.get(id);
+        EvictingQueue<Coords2D> vec = velocityVectors.get(id);
         if (vec.size() < 2) {
             return;
         }
@@ -60,11 +51,17 @@ public class VelocityProcessorStage extends PipelineStage {
         int count = 0;
         double displacementX = 0;
         double displacementY = 0;
-        for (int i = 0; i < vec.size() - 1; i++) {
-            Coords2D crr = vec.get(i);
-            Coords2D next = vec.get(i + 1);
-            displacementX += (next.x - crr.x);
-            displacementY += (next.y - crr.y);
+        Coords2D prev = null;
+
+        for (Coords2D crr : vec) {
+            if (prev == null) {
+                prev = crr;
+                continue;
+            }
+
+            displacementX += (crr.x - prev.x);
+            displacementY += (crr.y - prev.y);
+            prev = crr;
             count++;
         }
 
@@ -76,14 +73,9 @@ public class VelocityProcessorStage extends PipelineStage {
 
     private void updateVelocityVector(Node n) {
         String id = n.getNodeData().getId();
-        LinkedList<Coords2D> vec = velocityVectors.get(id);
-
-        if (vec.size() == windowSize) {
-            vec.removeFirst();
-        }
-
+        EvictingQueue<Coords2D> vec = velocityVectors.get(id);
         Coords2D c = new Coords2D(n.getNodeData().x(), n.getNodeData().y());
-        vec.addLast(c);
+        vec.offer(c);
     }
 
     @Override
@@ -97,20 +89,13 @@ public class VelocityProcessorStage extends PipelineStage {
             //info("*");
         }
         info("\n");
-        
-        crrWindowSize = Math.min(crrWindowSize + 1, windowSize);
-        if (crrWindowSize < 2) {
+
+        if (GraphUtil.isColumnNull(VelocityProcessorStage.VELOCITY_VECTOR)) {
             return;
         }
 
-        cosineSimWriter.println("from " + from + " to " + to);
-        cosineGroupSimilarity.printGroupSimilarity(cosineSimWriter, 1);
-        cosineGroupSimilarity.printGroupSimilarity(cosineSimWriter, 2);
-
-        speedSimWriter.println("from " + from + " to " + to);
-        speedGroupSimilarity.printGroupSimilarity(speedSimWriter, 1);
-        speedGroupSimilarity.printGroupSimilarity(speedSimWriter, 2);
-
+        sss.run(from, to, hasChanged);
+        csc.run(from, to, hasChanged);
     }
 
     public static FloatList getVelocityVector(Node n) {
@@ -119,27 +104,26 @@ public class VelocityProcessorStage extends PipelineStage {
     }
 
     @Override
-    public void setup() {
-        crrWindowSize = 0;
-        try {
-            File resultsDir = ResultsDir.getCurrentResultPath();
-            cosineSimWriter = new PrintWriter(new File(resultsDir, "cosine_sim"), "UTF-8");
-            speedSimWriter = new PrintWriter(new File(resultsDir, "speed_sim"), "UTF-8");
-        } catch (Exception ex) {
-            Exceptions.printStackTrace(ex);
+    public void setup(CurrentConfig cc) {
+        sss.setup(cc);
+        csc.setup(cc);
+
+        int windowSize = (int) cc.getValue(CONFIG_PARAM_VELOCITY_VEC_WINDOW_SIZE);
+        if (windowSize < 0) {
+            throw new IllegalArgumentException("Window size cannot be negative");
         }
 
         for (Node n : graphModel.getGraphVisible().getNodes()) {
             String id = n.getNodeData().getId();
-            velocityVectors.put(id, new LinkedList<Coords2D>());
+            EvictingQueue<Coords2D> q = EvictingQueue.create(windowSize);
+            velocityVectors.put(id, q);
         }
     }
 
     @Override
     public void tearDown() {
         velocityVectors.clear();
-        cosineSimWriter.close();
-        speedSimWriter.close();
+        sss.tearDown();
+        csc.tearDown();
     }
-
 }

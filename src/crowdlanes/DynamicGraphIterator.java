@@ -1,5 +1,6 @@
 package crowdlanes;
 
+import static crowdlanes.config.ParamNames.*;
 import java.util.Iterator;
 import org.gephi.dynamic.api.DynamicController;
 import org.gephi.dynamic.api.DynamicModel;
@@ -18,15 +19,14 @@ public class DynamicGraphIterator implements Iterable<Graph> {
     private double from;
     private boolean someAction;
 
-    public DynamicGraphIterator(double step, double duration) {
-        this.step = step;
-        this.duration = duration;
+    public DynamicGraphIterator(Simulation.CurrentConfig cc) {
+        this.step = (double) cc.getValue(CONFIG_PARAM_GRAPH_ITERATOR_STEP);
+        this.duration = (double) cc.getValue(CONFIG_PARAM_GRAPH_ITERATOR_WINDOW_SIZE);
         DynamicController dc = Lookup.getDefault().lookup(DynamicController.class);
         DynamicModel model = dc.getModel();
         this.max = model.getMax();
         this.min = model.getMin();
         from = 0;
-        duration = 0;
     }
 
     public Range getCurrentRange() {

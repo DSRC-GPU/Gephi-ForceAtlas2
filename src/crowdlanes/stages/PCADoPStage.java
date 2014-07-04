@@ -1,6 +1,8 @@
 package crowdlanes.stages;
 
 import crowdlanes.GraphUtil;
+import crowdlanes.Simulation.CurrentConfig;
+import static crowdlanes.config.ParamNames.*;
 import org.gephi.data.attributes.api.AttributeController;
 import org.gephi.data.attributes.api.AttributeOrigin;
 import org.gephi.data.attributes.api.AttributeTable;
@@ -22,19 +24,14 @@ public class PCADoPStage extends PipelineStage {
     private int incorrect_cuts;
     private int correct_cuts;
     private int missed_cuts;
-    private GraphModel graphModel;
-    private PCAStage pcaStage;
-    private final float phi1;
-    private final float phi2;
+    private final GraphModel graphModel;
+    private final PCAStage pcaStage;
+    private float phi_fine;
+    private float phi_coarse;
 
-    public PCADoPStage(float phi1, float phi2) {
-        if (phi1 > phi2) {
-            throw new IllegalArgumentException("phi1 value must be smaller then phi2");
-        }
+    public PCADoPStage() {
 
         pcaStage = new PCAStage();
-        this.phi1 = phi1;
-        this.phi2 = phi2;
 
         graphModel = Lookup.getDefault().lookup(GraphController.class).getModel();
         AttributeController attributeController = Lookup.getDefault().lookup(AttributeController.class);
@@ -66,6 +63,11 @@ public class PCADoPStage extends PipelineStage {
     public void run(double from, double to, boolean hasChanged) {
 
         pcaStage.run(from, to, hasChanged);
+        if (GraphUtil.isColumnNull(PCAStage.PCA_PHI_FINE) || GraphUtil.isColumnNull(PCAStage.PCA_PHI_COARSE)) {
+            return;
+        }
+
+        info("DOP_PCA_Stage:");
         Graph g = graphModel.getGraphVisible();
         for (Node n : g.getNodes()) {
             Double fine = (Double) n.getAttributes().getValue(PCAStage.PCA_PHI_FINE);
@@ -76,6 +78,8 @@ public class PCADoPStage extends PipelineStage {
         setEdgesStatus(g);
         getEdgesStat(g);
         cutEdges(g);
+
+        info("\n");
 
         System.err.println("Incorrect cuts: " + incorrect_cuts);
         System.err.println("Correct cuts: " + correct_cuts);
@@ -166,11 +170,18 @@ public class PCADoPStage extends PipelineStage {
     }
 
     @Override
-    public void setup() {
+    public void setup(CurrentConfig cc) {
+        this.phi_fine = (float) cc.getValue(CONFIG_PARAM_SMOOTHENING_PHI_FINE);
+        this.phi_coarse = (float) cc.getValue(CONFIG_PARAM_SMOOTHENING_PHI_COARSE);
+
+        if (phi_fine > phi_coarse) {
+            throw new IllegalArgumentException("phi1 value must be smaller then phi2");
+        }
+
         total_incorrect_cuts = 0;
         total_correct_cuts = 0;
         total_missed_cuts = 0;
-        pcaStage.setup();
+        pcaStage.setup(cc);
     }
 
     @Override

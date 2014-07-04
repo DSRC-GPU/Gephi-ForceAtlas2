@@ -1,16 +1,16 @@
-package crowdlanes;
+package crowdlanes.stages;
 
+import crowdlanes.GraphUtil;
+import crowdlanes.ResultsDir;
 import static crowdlanes.GraphUtil.getVector;
+import crowdlanes.Simulation;
 import crowdlanes.stages.*;
-import static crowdlanes.stages.PCADoPStage.DOP_VALUE;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import org.gephi.data.attributes.api.AttributeColumn;
 import org.gephi.data.attributes.api.AttributeController;
@@ -50,7 +50,7 @@ public class GraphPrinterStage extends PipelineStage {
         for (int i = 0; i < nodes.length; i++) {
             Node n = nodes[i];
             Integer g = (Integer) n.getAttributes().getValue(GraphUtil.GROUP_COLUMN_NAME);
-            Integer cc = (Integer) n.getAttributes().getValue(groupColumn.getIndex());
+            Integer cc = 0;//(Integer) n.getAttributes().getValue(groupColumn.getIndex());
             String id = n.getNodeData().getId();
 
             FloatList velocity = getVector(n, VelocityProcessorStage.VELOCITY_VECTOR);
@@ -89,7 +89,7 @@ public class GraphPrinterStage extends PipelineStage {
     }
 
     @Override
-    public void setup() {
+    public void setup(Simulation.CurrentConfig cc) {
         try {
             File resultsDir = ResultsDir.getCurrentResultPath();
             writer_nodes = new PrintWriter(new File(resultsDir, "nodes.txt"), "UTF-8");

@@ -1,7 +1,12 @@
 package crowdlanes.stages;
 
+import crowdlanes.Simulation;
+
 
 public class EdgeCutingAndCCDetectionStage extends PipelineStage {
+
+    public EdgeCutingAndCCDetectionStage() {
+    }
 
     @Override
     public void run(double from, double to, boolean hasChanged) {
@@ -9,7 +14,7 @@ public class EdgeCutingAndCCDetectionStage extends PipelineStage {
     }
 
     @Override
-    public void setup() {
+    public void setup(Simulation.CurrentConfig cc) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

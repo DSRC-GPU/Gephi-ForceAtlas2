@@ -1,6 +1,7 @@
 package crowdlanes.stages;
 
 import crowdlanes.GraphUtil;
+import crowdlanes.Simulation;
 import la.matrix.DenseMatrix;
 import la.matrix.Matrix;
 import ml.utils.ArrayOperator;
@@ -34,6 +35,10 @@ public class PCAStage extends PipelineStage {
 
     @Override
     public void run(double from, double to, boolean hasChanged) {
+            
+        if (GraphUtil.isColumnNull(SmootheningStage.FINE_SMOOTHENING) || GraphUtil.isColumnNull(SmootheningStage.COARSE_SMOOTHENING)) {
+            return;
+        }
 
         Graph g = graphModel.getGraphVisible();
 
@@ -82,7 +87,7 @@ public class PCAStage extends PipelineStage {
     }
 
     @Override
-    public void setup() {
+    public void setup(Simulation.CurrentConfig cc) {
 
     }
 

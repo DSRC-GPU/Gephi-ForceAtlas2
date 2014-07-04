@@ -1,11 +1,11 @@
 package crowdlanes;
 
+import static crowdlanes.GraphUtil.getVector;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import org.gephi.data.attributes.type.FloatList;
 import org.gephi.graph.api.Node;
-import static crowdlanes.GraphUtil.getVector;
 
 public class CosineGroupSimilarity {
 
@@ -13,10 +13,11 @@ public class CosineGroupSimilarity {
     private final ArrayList<Double> cosineSimResults;
 
     public CosineGroupSimilarity(String columnName) {
-        cosineSimResults = new ArrayList<Double>();
+        cosineSimResults = new ArrayList<>();
         this.vectorColumnName = columnName;
     }
-    
+
+
     public void printGroupSimilarity(PrintWriter writer, int group) {
         double gs;
         writer.print(group);
@@ -57,7 +58,7 @@ public class CosineGroupSimilarity {
     public double getInnerGroupSimilarity(int group) {
         cosineSimResults.clear();
         List<Node> sameGroup = GraphUtil.getNodesInGroup(group);
-        
+
         for (int i = 0; i < sameGroup.size(); i++) {
             Node n1 = sameGroup.get(i);
             FloatList vals1 = getVector(n1, vectorColumnName);

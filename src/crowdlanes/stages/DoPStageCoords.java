@@ -1,7 +1,9 @@
 package crowdlanes.stages;
 
+import static crowdlanes.config.ParamNames.*;
 import crowdlanes.GraphUtil;
 import static crowdlanes.GraphUtil.getVector;
+import crowdlanes.Simulation.CurrentConfig;
 import org.gephi.data.attributes.api.AttributeController;
 import org.gephi.data.attributes.api.AttributeOrigin;
 import org.gephi.data.attributes.api.AttributeTable;
@@ -26,17 +28,12 @@ public class DoPStageCoords extends PipelineStage {
     private int incorrect_cuts;
     private int correct_cuts;
     private int missed_cuts;
-    private GraphModel graphModel;
+    private final GraphModel graphModel;
 
-    private final float phi1;
-    private final float phi2;
+    private float phi_fine;
+    private float phi_coarse;
 
-    public DoPStageCoords(float phi1, float phi2) {
-        if (phi1 > phi2) {
-            throw new IllegalArgumentException("phi1 value must be smaller then phi2");
-        }
-        this.phi1 = phi1;
-        this.phi2 = phi2;
+    public DoPStageCoords() {
 
         graphModel = Lookup.getDefault().lookup(GraphController.class).getModel();
         AttributeController attributeController = Lookup.getDefault().lookup(AttributeController.class);
@@ -101,6 +98,12 @@ public class DoPStageCoords extends PipelineStage {
 
     @Override
     public void run(double from, double to, boolean hasChanged) {
+        
+        if (GraphUtil.isColumnNull(SmootheningStage.FINE_SMOOTHENING) || GraphUtil.isColumnNull(SmootheningStage.COARSE_SMOOTHENING)) {
+            return;
+        }
+
+        info("DOP_Coords_Stage:");
 
         Graph g = graphModel.getGraphVisible();
         for (Node n : g.getNodes()) {
@@ -112,6 +115,7 @@ public class DoPStageCoords extends PipelineStage {
         setEdgesStatus(g);
         getEdgesStat(g);
         cutEdges(g);
+        info("\n");
 
         System.err.println("Incorrect cuts: " + incorrect_cuts);
         System.err.println("Correct cuts: " + correct_cuts);
@@ -137,10 +141,18 @@ public class DoPStageCoords extends PipelineStage {
     }
 
     @Override
-    public void setup() {
+    public void setup(CurrentConfig cc) {
+        this.phi_fine = (float) cc.getValue(CONFIG_PARAM_SMOOTHENING_PHI_FINE);
+        this.phi_coarse = (float) cc.getValue(CONFIG_PARAM_SMOOTHENING_PHI_COARSE);
+
+        if (phi_fine > phi_coarse) {
+            throw new IllegalArgumentException("phi1 value must be smaller then phi2");
+        }
+
         total_incorrect_cuts = 0;
         total_correct_cuts = 0;
         total_missed_cuts = 0;
+
     }
 
     @Override

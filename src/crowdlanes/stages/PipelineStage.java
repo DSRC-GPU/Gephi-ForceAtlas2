@@ -1,12 +1,14 @@
 package crowdlanes.stages;
 
+import crowdlanes.Simulation.CurrentConfig;
+
 public abstract class PipelineStage {
 
     public static boolean INFO = true;
-
+    
     public abstract void run(double from, double to, boolean hasChanged);
 
-    public abstract void setup();
+    public abstract void setup(CurrentConfig cc);
 
     public abstract void tearDown();
 

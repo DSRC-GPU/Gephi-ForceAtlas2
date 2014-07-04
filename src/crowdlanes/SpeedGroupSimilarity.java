@@ -1,11 +1,11 @@
 package crowdlanes;
 
+import static crowdlanes.GraphUtil.getVector;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import org.gephi.data.attributes.type.FloatList;
 import org.gephi.graph.api.Node;
-import static crowdlanes.GraphUtil.getVector;
 
 public class SpeedGroupSimilarity {
 
@@ -13,9 +13,10 @@ public class SpeedGroupSimilarity {
     private final ArrayList<Double> speedSimResults;
 
     public SpeedGroupSimilarity(String columnName) {
-        speedSimResults = new ArrayList<Double>();
+        speedSimResults = new ArrayList<>();
         this.vectorColumnName = columnName;
     }
+
 
     public void printGroupSimilarity(PrintWriter writer, int group) {
         double gs;

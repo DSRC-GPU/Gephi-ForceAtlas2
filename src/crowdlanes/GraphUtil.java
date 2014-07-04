@@ -99,7 +99,7 @@ public final class GraphUtil {
         Integer g2 = (Integer) n2.getAttributes().getValue(GROUP_COLUMN_NAME);
         return g1.equals(g2);
     }
-    
+
     public static ConnectedComponents getCC() {
         GraphModel graphModel = Lookup.getDefault().lookup(GraphController.class).getModel();
         ConnectedComponents cc = new ConnectedComponents();
@@ -107,5 +107,16 @@ public final class GraphUtil {
         AttributeModel attributeModel = Lookup.getDefault().lookup(AttributeController.class).getModel();
         cc.execute(graphModel, attributeModel);
         return cc;
+    }
+
+    public static boolean isColumnNull(String columnName) {
+        Graph g = Lookup.getDefault().lookup(GraphController.class).getModel().getGraphVisible();
+        Node n = g.getNodes().toArray()[0];
+        Object val = n.getAttributes().getValue(columnName);
+        if (val == null) {
+            return true;
+        }
+
+        return false;
     }
 }
