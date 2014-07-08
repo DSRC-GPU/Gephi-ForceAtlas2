@@ -5,6 +5,7 @@ import crowdlanes.Simulation;
 import crowdlanes.config.CurrentConfig;
 import la.matrix.DenseMatrix;
 import la.matrix.Matrix;
+import ml.subspace.KernelPCA;
 import ml.utils.ArrayOperator;
 import ml.utils.Matlab;
 import org.gephi.data.attributes.api.AttributeController;
@@ -58,7 +59,8 @@ public class PCAStage extends PipelineStage {
         }
 
         Matrix X = new DenseMatrix(data);
-        Matrix R = pca(X, 1);
+        //Matrix R = pca(X, 1);
+        Matrix R = KernelPCA.run(X, 1);
         for (int i = 0; i < nodes.length; i++) {
             Node n = nodes[i];
             n.getAttributes().setValue(PCA_PHI_FINE, R.getEntry(2 * i, 0));

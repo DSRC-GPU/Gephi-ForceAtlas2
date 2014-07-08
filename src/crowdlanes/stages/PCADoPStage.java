@@ -17,7 +17,7 @@ import org.openide.util.Lookup;
 public class PCADoPStage extends PipelineStage {
 
     public final static String DOP_VALUE = "DoP_PCA";
-    public final static String EDGE_CUT = "Edge_Cut";
+    public final static String EDGE_CUT = "Edge_Cut_PCA";
     private int total_incorrect_cuts;
     private int total_correct_cuts;
     private int total_missed_cuts;
@@ -80,9 +80,9 @@ public class PCADoPStage extends PipelineStage {
 
         info("\n");
 
-        System.err.println("Incorrect cuts: " + incorrect_cuts);
-        System.err.println("Correct cuts: " + correct_cuts);
-        System.err.println("Missed cuts: " + missed_cuts);
+        System.err.println("\tIncorrect cuts: " + incorrect_cuts);
+        System.err.println("\tCorrect cuts: " + correct_cuts);
+        System.err.println("\tMissed cuts: " + missed_cuts);
     }
 
     private void computeDop(Node n, Double fine, Double coarse) {
@@ -153,7 +153,6 @@ public class PCADoPStage extends PipelineStage {
     private void setEdgesStatus(Graph g) {
         for (Edge e : g.getEdges()) {
             e.getAttributes().setValue(EDGE_CUT, isEdgeCut(e.getSource(), e.getTarget()));
-
         }
     }
 
@@ -175,8 +174,9 @@ public class PCADoPStage extends PipelineStage {
     @Override
     public void tearDown() {
         pcaStage.tearDown();
-        System.err.println("total incorrect cuts: " + getIncorrectCuts());
-        System.err.println("total correct cuts: " + getCorrectCuts());
-        System.err.println("total missed cuts: " + getMissedCuts());
+        System.err.println("PCADop:");
+        System.err.println("\tTotal incorrect cuts: " + getIncorrectCuts());
+        System.err.println("\tTotal correct cuts: " + getCorrectCuts());
+        System.err.println("\tTotal missed cuts: " + getMissedCuts());
     }
 }

@@ -1,5 +1,6 @@
-package crowdlanes;
+package crowdlanes.metrics;
 
+import crowdlanes.Coords2D;
 import org.gephi.data.attributes.type.FloatList;
 
 public class CosineSimilarity {

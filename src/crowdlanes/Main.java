@@ -1,8 +1,9 @@
 package crowdlanes;
 
 import crowdlanes.config.ConfigParam;
-import crowdlanes.config.ParameterSweeper;
 import static crowdlanes.config.ParamNames.*;
+import crowdlanes.config.ParameterSweeper;
+import crowdlanes.graphReader.GraphReader;
 import crowdlanes.stages.EmbeddingStage;
 import crowdlanes.stages.SmootheningStage;
 import crowdlanes.stages.VelocityProcessorStage;
@@ -10,13 +11,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import org.ini4j.Wini;
+import org.openide.util.Lookup;
 
 public class Main {
 
-    private static void setup(String gexf_file) throws FileNotFoundException {
-        GraphReader.getInstance().setup(gexf_file);
-        EdgeWeight.getInstance().setup();
-    }
 
     public static void main(String[] args) throws FileNotFoundException, IOException, IllegalAccessException {
         if (args.length < 2) {
@@ -24,7 +22,8 @@ public class Main {
             System.exit(-1);
         }
 
-        setup(args[0]);
+        Lookup.getDefault().lookup(GraphReader.class).importFile(args[0]);
+
 
         Wini config = new Wini(new File(args[1]));
         ParameterSweeper ps = new ParameterSweeper();
@@ -41,7 +40,8 @@ public class Main {
         
         ps.registerParam(new ConfigParam(config, SmootheningStage.SECTION, Float.class, CONFIG_PARAM_SMOOTHENING_PHI_FINE));
         ps.registerParam(new ConfigParam(config, SmootheningStage.SECTION, Float.class, CONFIG_PARAM_SMOOTHENING_PHI_COARSE));
-        ps.registerParam(new ConfigParam(config, SmootheningStage.SECTION, Integer.class, CONFIG_PARAM_SMOOTHENING_NO_ROUNDS));
+        ps.registerParam(new ConfigParam(config, SmootheningStage.SECTION, Integer.class, CONFIG_PARAM_SMOOTHENING_NO_ROUNDS_FINE));
+        ps.registerParam(new ConfigParam(config, SmootheningStage.SECTION, Integer.class, CONFIG_PARAM_SMOOTHENING_NO_ROUNDS_COARSE));
         ps.registerParam(new ConfigParam(config, SmootheningStage.SECTION, String.class, CONFIG_PARAM_SMOOTHENING_AVG_WEIGHTS));
         ps.run();
     }

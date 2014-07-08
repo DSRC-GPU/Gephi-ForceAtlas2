@@ -1,6 +1,7 @@
 package crowdlanes.stages;
 
 import crowdlanes.config.CurrentConfig;
+import java.io.PrintWriter;
 
 public abstract class PipelineStage {
 
@@ -11,6 +12,8 @@ public abstract class PipelineStage {
     public abstract void setup(CurrentConfig cc);
 
     public abstract void tearDown();
+    
+    public void printParams(PrintWriter pw) {}
 
     protected void info(String msg) {
         if (INFO) {

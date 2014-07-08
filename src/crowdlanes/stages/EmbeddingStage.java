@@ -5,6 +5,7 @@ import crowdlanes.EdgeWeight;
 import crowdlanes.config.CurrentConfig;
 import crowdlanes.embeddings.MaximalMatchingCoarsening;
 import crowdlanes.embeddings.MultiLevelLayout;
+import java.io.PrintWriter;
 import org.gephi.graph.api.GraphController;
 import org.gephi.graph.api.GraphModel;
 import org.gephi.layout.plugin.force.StepDisplacement;
@@ -40,7 +41,7 @@ public class EmbeddingStage extends PipelineStage {
         multiLevelLayout.setGraphModel(graphModel);
         multiLevelLayout.initAlgo();
 
-        while (!multiLevelLayout.isConverged()) {
+        while (!multiLevelLayout.canAlgo()) {
             multiLevelLayout.goAlgo();
         }
         multiLevelLayout.endAlgo();
@@ -50,7 +51,7 @@ public class EmbeddingStage extends PipelineStage {
         info(embeddingType + " Stage: ");
 
         if (useEdgeWeights) {
-            EdgeWeight.getInstance().setEdgeWeights(from, to);
+            EdgeWeight.setEdgeWeights(from, to);
         }
 
         if (initAlgo) {
@@ -72,6 +73,7 @@ public class EmbeddingStage extends PipelineStage {
     private void initYifanHu(YifanHuLayout yifanHuLayout) {
         yifanHuLayout.setGraphModel(graphModel);
         yifanHuLayout.resetPropertiesValues();
+        //yifanHuLayout.setOptimalDistance(100f);
         noIters = Integer.MAX_VALUE;
         initAlgo = true;
         endAlgo = true;
@@ -99,15 +101,14 @@ public class EmbeddingStage extends PipelineStage {
         this.embeddingType = cc.getStringValue(CONFIG_PARAM_EMBEDDING_TYPE);
         this.useEdgeWeights = cc.getBooleanValue(CONFIG_PARAM_FORCE_ATLAS_USE_EDGE_WEIGHTS);
 
-        ForceAtlas2 forceAltasLayout = new ForceAtlas2(null);
-        YifanHuLayout yifanHuLayout = new YifanHuLayout(null, new StepDisplacement(1f));
-
         switch (embeddingType) {
             case YIFANHU_LAYOUT:
+                YifanHuLayout yifanHuLayout = new YifanHuLayout(null, new StepDisplacement(1f));
                 initYifanHu(yifanHuLayout);
                 layout = yifanHuLayout;
                 break;
             case FORCE_ATLAS2_LAYOUT:
+                ForceAtlas2 forceAltasLayout = new ForceAtlas2(null);
                 initForceAtlas2(forceAltasLayout);
                 layout = forceAltasLayout;
                 break;
@@ -122,5 +123,13 @@ public class EmbeddingStage extends PipelineStage {
         if (!endAlgo) {
             layout.endAlgo();
         }
+    }
+
+    @Override
+    public void printParams(PrintWriter pw) {
+        pw.println(CONFIG_PARAM_INITIAL_EMBEDDING_SEED + ": " + this.seed);
+        pw.println(CONFIG_PARAM_FORCE_ATLAS_NO_ITER + ": " + this.noIters);
+        pw.println(CONFIG_PARAM_EMBEDDING_TYPE + ": " + this.embeddingType);
+        pw.println(CONFIG_PARAM_FORCE_ATLAS_USE_EDGE_WEIGHTS + ": " + this.useEdgeWeights);
     }
 }

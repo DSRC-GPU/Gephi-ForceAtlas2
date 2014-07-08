@@ -1,9 +1,13 @@
 package crowdlanes.stages;
 
+import crowdlanes.metrics.CosineSimilarity;
 import crowdlanes.*;
 import static crowdlanes.config.ParamNames.*;
 import crowdlanes.config.CurrentConfig;
+import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.gephi.data.attributes.api.AttributeController;
 import org.gephi.data.attributes.api.AttributeOrigin;
 import org.gephi.data.attributes.api.AttributeTable;
@@ -31,16 +35,21 @@ public class SmootheningStage extends PipelineStage {
     private boolean cosineSimWeights;
     private boolean edgeWeights;
     private int noRounds;
-    private float inhibitFactor;
+    private float phi;
     private final HashMap<Integer, Coords2D> state;
     private final SpeedSimilarityStage sss;
     private final CosineSimilarityStage csc;
     private final String resultVector;
-    private final String phiName;
+    private final String phiParamName;
+    private final String noRoundsParamName;
+    private String averageMethod;
+    //private final int threadCount;
+    //private final ExecutorService pool;
 
-    public SmootheningStage(String resultVector, String phiName) throws IllegalAccessException {
+    public SmootheningStage(String resultVector, String phiName, String noRoundsParamName) throws IllegalAccessException {
         this.state = new HashMap<>();
-        this.phiName = phiName;
+        this.phiParamName = phiName;
+        this.noRoundsParamName = noRoundsParamName;
         this.resultVector = resultVector;
 
         sss = new SpeedSimilarityStage("speed_sim_" + resultVector, resultVector);
@@ -66,7 +75,7 @@ public class SmootheningStage extends PipelineStage {
     }
 
     private void setEdgeVisibilityWeight(double from, double to, Edge e) {
-        double edgeWeight = EdgeWeight.getInstance().getEdgeWeightRatio(from, to, e);
+        double edgeWeight = EdgeWeight.getEdgeWeightRatio(from, to, e);
         e.setWeight((float) edgeWeight);
     }
 
@@ -96,6 +105,8 @@ public class SmootheningStage extends PipelineStage {
             Coords2D neighSum = state.get(n.getId());
             neighSum.x = nDir.getItem(0);
             neighSum.y = nDir.getItem(1);
+            //neighSum.x = 0;
+            //neighSum.y = 0;
         }
     }
 
@@ -105,9 +116,9 @@ public class SmootheningStage extends PipelineStage {
 
             for (Node neighbour : graph.getNeighbors(n)) {
                 Edge e = graph.getEdge(n, neighbour);
-                FloatList neighbourDir = GraphUtil.getVector(n, resultVector);
-                neighSum.x += neighbourDir.getItem(0) * e.getWeight();
-                neighSum.y += neighbourDir.getItem(1) * e.getWeight();
+                FloatList neighbourDir = GraphUtil.getVector(neighbour, resultVector);
+                neighSum.x += (neighbourDir.getItem(0) * e.getWeight());
+                neighSum.y += (neighbourDir.getItem(1) * e.getWeight());
             }
         }
     }
@@ -115,6 +126,7 @@ public class SmootheningStage extends PipelineStage {
     private void endRound(Graph graph) {
         for (Node n : graph.getNodes()) {
 
+            //double totalWeight = 0;
             double totalWeight = 1;
             for (Node neigh : graph.getNeighbors(n)) {
                 totalWeight += graph.getEdge(n, neigh).getWeight();
@@ -125,8 +137,8 @@ public class SmootheningStage extends PipelineStage {
             nodeVals.y /= totalWeight;
 
             FloatList dir = VelocityProcessorStage.getVelocityVector(n);
-            float x = (1 - inhibitFactor) * nodeVals.x + inhibitFactor * dir.getItem(0);
-            float y = (1 - inhibitFactor) * nodeVals.y + inhibitFactor * dir.getItem(1);
+            float x = (1f - phi) * nodeVals.x + phi * dir.getItem(0);
+            float y = (1f - phi) * nodeVals.y + phi * dir.getItem(1);
             n.getAttributes().setValue(resultVector, new FloatList(new Float[]{x, y}));
         }
     }
@@ -137,9 +149,9 @@ public class SmootheningStage extends PipelineStage {
         if (GraphUtil.isColumnNull(VelocityProcessorStage.VELOCITY_VECTOR)) {
             return;
         }
-        
+
         info("SmootheningStage: ");
-        
+
         Graph g = graphModel.getGraphVisible();
         initialize(from, to, g);
         for (int i = 0; i < noRounds; i++) {
@@ -159,10 +171,11 @@ public class SmootheningStage extends PipelineStage {
         csc.setup(cc);
         sss.setup(cc);
 
-        String averageMethod = cc.getStringValue(CONFIG_PARAM_SMOOTHENING_AVG_WEIGHTS);
-        this.noRounds = cc.getIntegerValue(CONFIG_PARAM_SMOOTHENING_NO_ROUNDS);
-        this.inhibitFactor = cc.getFloatValue(phiName);
+        this.averageMethod = cc.getStringValue(CONFIG_PARAM_SMOOTHENING_AVG_WEIGHTS);
+        this.noRounds = cc.getIntegerValue(noRoundsParamName);
+        this.phi = cc.getFloatValue(phiParamName);
 
+        normalAverage = cosineSimWeights = edgeWeights = false;
         switch (averageMethod) {
             case AVG_NORMAL:
                 normalAverage = true;
@@ -177,16 +190,21 @@ public class SmootheningStage extends PipelineStage {
                 throw new IllegalArgumentException("Unknown average method: " + averageMethod);
         }
 
-        state.clear();
         for (Node n : graphModel.getGraph().getNodes()) {
             state.put(n.getId(), new Coords2D());
             n.getAttributes().setValue(resultVector, null);
         }
+    }
 
+    public void printParams(PrintWriter pw) {
+        pw.println(CONFIG_PARAM_SMOOTHENING_AVG_WEIGHTS + ": " + this.averageMethod);
+        pw.println(noRoundsParamName + ": " + this.noRounds);
+        pw.println(phiParamName + ": " + this.phi);
     }
 
     @Override
     public void tearDown() {
+        state.clear();
         csc.tearDown();
         sss.tearDown();
     }

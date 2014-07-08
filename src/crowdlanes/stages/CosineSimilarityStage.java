@@ -5,12 +5,13 @@
  */
 package crowdlanes.stages;
 
-import crowdlanes.CosineGroupSimilarity;
+import crowdlanes.metrics.CosineGroupSimilarity;
 import crowdlanes.GraphUtil;
-import crowdlanes.ResultsDir;
+import crowdlanes.config.ResultsDir;
 import crowdlanes.config.CurrentConfig;
 import java.io.File;
 import java.io.PrintWriter;
+import java.util.Set;
 import org.openide.util.Exceptions;
 
 /**
@@ -30,9 +31,11 @@ public class CosineSimilarityStage extends PipelineStage {
 
     @Override
     public void run(double from, double to, boolean hasChanged) {
+        Set<Integer> groups = GraphUtil.getGroups();
         cosineSimWriter.println("from " + from + " to " + to);
+        cosineSimWriter.println("entries: " + groups.size());
 
-        for (Integer g : GraphUtil.getGroups()) {
+        for (Integer g : groups) {
             cosineGroupSimilarity.printGroupSimilarity(cosineSimWriter, g);
         }
     }

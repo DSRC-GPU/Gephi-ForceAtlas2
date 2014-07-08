@@ -1,11 +1,12 @@
 package crowdlanes.stages;
 
 import crowdlanes.GraphUtil;
-import crowdlanes.ResultsDir;
-import crowdlanes.SpeedGroupSimilarity;
+import crowdlanes.config.ResultsDir;
+import crowdlanes.metrics.SpeedGroupSimilarity;
 import crowdlanes.config.CurrentConfig;
 import java.io.File;
 import java.io.PrintWriter;
+import java.util.Set;
 import org.openide.util.Exceptions;
 
 public class SpeedSimilarityStage extends PipelineStage {
@@ -21,8 +22,10 @@ public class SpeedSimilarityStage extends PipelineStage {
 
     @Override
     public void run(double from, double to, boolean hasChanged) {
+        Set<Integer> groups = GraphUtil.getGroups();
         speedSimWriter.println("from " + from + " to " + to);
-        for (Integer g : GraphUtil.getGroups()) {
+        speedSimWriter.println("entries: " + groups.size());
+        for (Integer g : groups) {
             speedGroupSimilarity.printGroupSimilarity(speedSimWriter, g);
         }
     }

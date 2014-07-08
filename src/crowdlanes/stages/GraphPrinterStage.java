@@ -2,7 +2,7 @@ package crowdlanes.stages;
 
 import crowdlanes.GraphUtil;
 import static crowdlanes.GraphUtil.getVector;
-import crowdlanes.ResultsDir;
+import crowdlanes.config.ResultsDir;
 import crowdlanes.config.CurrentConfig;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -82,6 +82,7 @@ public class GraphPrinterStage extends PipelineStage {
             return;
         }
 
+        System.err.println("Step: " + (step - 1));
         writer_nodes.println("from " + from + " to " + to);
         writer_edges.println("from " + from + " to " + to);
         printNodes();

@@ -4,6 +4,7 @@ import com.google.common.collect.EvictingQueue;
 import crowdlanes.*;
 import crowdlanes.config.CurrentConfig;
 import static crowdlanes.config.ParamNames.*;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import org.gephi.data.attributes.api.AttributeController;
 import org.gephi.data.attributes.api.AttributeOrigin;
@@ -26,6 +27,7 @@ public class VelocityProcessorStage extends PipelineStage {
     private final CosineSimilarityStage csc;
     private int crrWindowSize;
     private final GraphModel graphModel;
+    private Integer windowSize;
 
     public VelocityProcessorStage() {
 
@@ -69,6 +71,13 @@ public class VelocityProcessorStage extends PipelineStage {
         float y = (float) (displacementY / count);
 
         n.getAttributes().setValue(VELOCITY_VECTOR, new FloatList(new Float[]{x, y}));
+        /*
+         if (n.getId() == 1) {
+         System.err.println("size: " + vec.size());
+         System.err.println("vec: " + vec);
+         System.err.println("res: " + n.getAttributes().getValue(VELOCITY_VECTOR));
+         }
+         */
     }
 
     private void updateVelocityVector(Node n) {
@@ -108,7 +117,7 @@ public class VelocityProcessorStage extends PipelineStage {
         sss.setup(cc);
         csc.setup(cc);
 
-        int windowSize = cc.getIntegerValue(CONFIG_PARAM_VELOCITY_VEC_WINDOW_SIZE);
+        this.windowSize = cc.getIntegerValue(CONFIG_PARAM_VELOCITY_VEC_WINDOW_SIZE);
         if (windowSize < 0) {
             throw new IllegalArgumentException("Window size cannot be negative");
         }
@@ -125,5 +134,10 @@ public class VelocityProcessorStage extends PipelineStage {
         velocityVectors.clear();
         sss.tearDown();
         csc.tearDown();
+    }
+
+    @Override
+    public void printParams(PrintWriter pw) {
+        pw.println(CONFIG_PARAM_VELOCITY_VEC_WINDOW_SIZE + ": " + windowSize);
     }
 }

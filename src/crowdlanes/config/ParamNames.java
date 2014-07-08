@@ -1,6 +1,4 @@
-
 package crowdlanes.config;
-
 
 public class ParamNames {
 
@@ -13,7 +11,8 @@ public class ParamNames {
     public final static String CONFIG_PARAM_GRAPH_ITERATOR_WINDOW_SIZE = "WindowSize";
     public final static String CONFIG_PARAM_SMOOTHENING_PHI_FINE = "PhiFine";
     public final static String CONFIG_PARAM_SMOOTHENING_PHI_COARSE = "PhiCoarse";
-    public final static String CONFIG_PARAM_SMOOTHENING_NO_ROUNDS = "NoRounds";
+    public final static String CONFIG_PARAM_SMOOTHENING_NO_ROUNDS_FINE = "NoRoundsFine";
+    public final static String CONFIG_PARAM_SMOOTHENING_NO_ROUNDS_COARSE = "NoRoundsCoarse";
     public final static String CONFIG_PARAM_SMOOTHENING_AVG_WEIGHTS = "WeightsType";
 
 }

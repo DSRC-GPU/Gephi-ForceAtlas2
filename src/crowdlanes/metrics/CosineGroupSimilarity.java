@@ -1,5 +1,6 @@
-package crowdlanes;
+package crowdlanes.metrics;
 
+import crowdlanes.GraphUtil;
 import static crowdlanes.GraphUtil.getVector;
 import java.io.PrintWriter;
 import java.util.ArrayList;

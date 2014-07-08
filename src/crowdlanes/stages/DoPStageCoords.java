@@ -18,9 +18,8 @@ import org.openide.util.Lookup;
 
 public class DoPStageCoords extends PipelineStage {
 
-    public final static String EDGE_CUT = "Edge_Cut";
+    public final static String EDGE_CUT = "Edge_Cut_Coords";
     public final static String RESULT_VECTOR_COORDS = "DoPCoords";
-    public final static String RESULT_VECTOR_ANGLE = "DoPAngle";
 
     private int total_incorrect_cuts;
     private int total_correct_cuts;
@@ -40,7 +39,6 @@ public class DoPStageCoords extends PipelineStage {
         AttributeTable nodesTable = attributeController.getModel().getNodeTable();
         if (nodesTable.hasColumn(RESULT_VECTOR_COORDS) == false) {
             nodesTable.addColumn(RESULT_VECTOR_COORDS, AttributeType.LIST_FLOAT, AttributeOrigin.COMPUTED);
-            nodesTable.addColumn(RESULT_VECTOR_ANGLE, AttributeType.DOUBLE, AttributeOrigin.COMPUTED);
         }
     }
 
@@ -106,9 +104,9 @@ public class DoPStageCoords extends PipelineStage {
         getEdgesStat(g);
         info("\n");
 
-        System.err.println("Incorrect cuts: " + incorrect_cuts);
-        System.err.println("Correct cuts: " + correct_cuts);
-        System.err.println("Missed cuts: " + missed_cuts);
+        System.err.println("\tIncorrect cuts: " + incorrect_cuts);
+        System.err.println("\tCorrect cuts: " + correct_cuts);
+        System.err.println("\tMissed cuts: " + missed_cuts);
     }
 
     private void computeDop(Node n, FloatList fine, FloatList coarse) {
@@ -141,14 +139,14 @@ public class DoPStageCoords extends PipelineStage {
         total_incorrect_cuts = 0;
         total_correct_cuts = 0;
         total_missed_cuts = 0;
-
     }
 
     @Override
     public void tearDown() {
-        System.err.println("total incorrect cuts: " + getIncorrectCuts());
-        System.err.println("total correct cuts: " + getCorrectCuts());
-        System.err.println("total missed cuts: " + getMissedCuts());
+        System.err.println("DopCoords:");
+        System.err.println("\tTotal incorrect cuts: " + getIncorrectCuts());
+        System.err.println("\tTotal correct cuts: " + getCorrectCuts());
+        System.err.println("\tTotal missed cuts: " + getMissedCuts());
     }
 
 }

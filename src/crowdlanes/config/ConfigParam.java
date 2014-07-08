@@ -136,7 +136,7 @@ public class ConfigParam extends HashSet<ConfigParam.Value> {
         public void parse(String[] parts) {
             vals = new Object[parts.length];
             for (int i = 0; i < parts.length; i++) {
-                String p = parts[i];
+                String p = parts[i].trim();
                 vals[i] = p.equals("null") == true ? null : toObject(clazz, p);
             }
         }
