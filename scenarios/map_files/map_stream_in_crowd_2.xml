@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<crowd>
+    <groupdescriptor gid="1">
+        <population>1711</population>
+        <sources>
+            <source type="spawn">
+                <xborder start="0" end="799"/>
+                <yborder start="0" end="399"/>
+            </source>
+        </sources>
+        <sinks/>
+        <map width="800" height="800" rows="4" cols="1">
+            5
+            5
+            8
+            5
+        </map>
+    </groupdescriptor>
+    <groupdescriptor gid="2">
+        <population>855</population>
+        <sources>
+            <source type="spawn">
+                <xborder start="0" end="799"/>
+                <yborder start="399" end="599"/>
+        </source>
+      <source>
+        <xborder start="0" end="0"></xborder>
+        <yborder start="399" end="599"></yborder>
+      </source>
+    </sources>
+    <sinks>
+      <sink>
+        <xborder start="799" end="799"></xborder>
+        <yborder start="399" end="599"></yborder>
+      </sink>
+    </sinks>
+    <map width="800" height="800" rows="4" cols="1">
+      5  
+      3
+      6
+      9
+    </map>
+  </groupdescriptor>
+    <groupdescriptor gid="3">
+        <population>855</population>
+        <sources>
+            <source type="spawn">
+                <xborder start="0" end="799"/>
+                <yborder start="599" end="799"/>
+            </source>
+        </sources>
+        <sinks/>
+        <map width="800" height="800" rows="4" cols="1">
+            5
+            5
+            2
+            5
+        </map>
+    </groupdescriptor>
+</crowd>
