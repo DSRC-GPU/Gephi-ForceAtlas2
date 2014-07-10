@@ -87,7 +87,7 @@ public class DoPStageCoords extends PipelineStage {
     @Override
     public void run(double from, double to, boolean hasChanged) {
         
-        if (GraphUtil.isColumnNull(SmootheningStage.FINE_SMOOTHENING) || GraphUtil.isColumnNull(SmootheningStage.COARSE_SMOOTHENING)) {
+        if (GraphUtil.isNodeColumnNull(SmootheningStage.FINE_SMOOTHENING) || GraphUtil.isNodeColumnNull(SmootheningStage.COARSE_SMOOTHENING)) {
             return;
         }
 
