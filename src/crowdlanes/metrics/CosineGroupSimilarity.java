@@ -1,7 +1,7 @@
 package crowdlanes.metrics;
 
-import crowdlanes.GraphUtil;
-import static crowdlanes.GraphUtil.getVector;
+import crowdlanes.util.GraphUtil;
+import static crowdlanes.util.GraphUtil.getVector;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +17,6 @@ public class CosineGroupSimilarity {
         cosineSimResults = new ArrayList<>();
         this.vectorColumnName = columnName;
     }
-
 
     public void printGroupSimilarity(PrintWriter writer, int group) {
         double gs;
@@ -49,6 +48,9 @@ public class CosineGroupSimilarity {
     }
 
     private double getGroupSimilarity() {
+        if (cosineSimResults.isEmpty())
+            return 0;
+        
         double groupSimilarity = 0;
         for (Double d : cosineSimResults) {
             groupSimilarity += d;

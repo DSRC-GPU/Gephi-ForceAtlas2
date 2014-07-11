@@ -1,10 +1,11 @@
-package crowdlanes.stages;
+package crowdlanes.stages.embedding;
 
-import static crowdlanes.config.ParamNames.*;
-import crowdlanes.EdgeWeight;
+import static crowdlanes.config.ConfigParamNames.*;
+import crowdlanes.util.EdgeWeight;
 import crowdlanes.config.CurrentConfig;
 import crowdlanes.embeddings.MaximalMatchingCoarsening;
 import crowdlanes.embeddings.MultiLevelLayout;
+import crowdlanes.stages.PipelineStage;
 import java.io.PrintWriter;
 import org.gephi.graph.api.GraphController;
 import org.gephi.graph.api.GraphModel;
@@ -16,7 +17,6 @@ import org.openide.util.Lookup;
 
 public class EmbeddingStage extends PipelineStage {
 
-    public final static String SECTION = "Embedding";
     public final static String YIFANHU_LAYOUT = "YifanHu";
     public final static String FORCE_ATLAS2_LAYOUT = "ForceAtlas2";
 
@@ -47,6 +47,7 @@ public class EmbeddingStage extends PipelineStage {
         multiLevelLayout.endAlgo();
     }
 
+    @Override
     public void run(double from, double to, boolean hasChanged) {
         info(embeddingType + " Stage: ");
 
@@ -73,7 +74,7 @@ public class EmbeddingStage extends PipelineStage {
     private void initYifanHu(YifanHuLayout yifanHuLayout) {
         yifanHuLayout.setGraphModel(graphModel);
         yifanHuLayout.resetPropertiesValues();
-        //yifanHuLayout.setOptimalDistance(100f);
+        yifanHuLayout.setOptimalDistance(100f);
         noIters = Integer.MAX_VALUE;
         initAlgo = true;
         endAlgo = true;

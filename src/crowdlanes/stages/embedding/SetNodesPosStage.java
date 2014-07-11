@@ -1,10 +1,10 @@
-package crowdlanes.stages;
+package crowdlanes.stages.embedding;
 
 import crowdlanes.config.CurrentConfig;
+import crowdlanes.stages.PipelineStage;
 import org.gephi.data.attributes.api.AttributeColumn;
 import org.gephi.data.attributes.api.AttributeController;
 import org.gephi.data.attributes.api.AttributeModel;
-import org.gephi.data.attributes.api.AttributeTable;
 import org.gephi.data.attributes.api.Estimator;
 import org.gephi.data.attributes.type.DynamicFloat;
 import org.gephi.graph.api.Graph;

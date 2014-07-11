@@ -1,12 +1,17 @@
 package crowdlanes;
 
-import crowdlanes.config.ResultsDir;
 import crowdlanes.config.ConfigParam;
+import static crowdlanes.config.ConfigParamNames.*;
 import crowdlanes.config.CurrentConfig;
-import static crowdlanes.config.ParamNames.*;
+import crowdlanes.config.ResultsDir;
+import crowdlanes.graphReader.DynamicGraphIterator;
 import crowdlanes.stages.*;
 import crowdlanes.stages.GraphPrinterStage;
+import crowdlanes.stages.dop.Dop;
+import crowdlanes.stages.embedding.MovementStage;
+import crowdlanes.stages.smoothening.SmootheningScalarStage;
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,13 +26,9 @@ public class Simulation {
 
     public Simulation() throws IllegalAccessException {
         pipeline = new ArrayList<>();
-        pipeline.add(new SetNodesPosStage());
-        //pipeline.add(new EmbeddingStage());
+        pipeline.add(new MovementStage());
         pipeline.add(new VelocityProcessorStage());
-        pipeline.add(new SmootheningStage(SmootheningStage.FINE_SMOOTHENING, CONFIG_PARAM_SMOOTHENING_PHI_FINE, CONFIG_PARAM_SMOOTHENING_NO_ROUNDS_FINE));
-        pipeline.add(new SmootheningStage(SmootheningStage.COARSE_SMOOTHENING, CONFIG_PARAM_SMOOTHENING_PHI_COARSE, CONFIG_PARAM_SMOOTHENING_NO_ROUNDS_COARSE));
-        pipeline.add(new DoPStageCoords());
-        pipeline.add(new PCADoPStage());
+        pipeline.add(new Dop());
         pipeline.add(new EdgeCutingAndCCDetectionStage());
         pipeline.add(new GraphPrinterStage());
     }
@@ -45,7 +46,7 @@ public class Simulation {
                 ps.printParams(pw);
             }
             pw.close();
-        } catch (Exception ex) {
+        } catch (IOException ex) {
             Exceptions.printStackTrace(ex);
         }
     }
@@ -77,6 +78,7 @@ public class Simulation {
 
             System.err.println("");
             count++;
+            //if (count == 5) { break;}
         }
 
         System.err.println("hasChanged: " + count);

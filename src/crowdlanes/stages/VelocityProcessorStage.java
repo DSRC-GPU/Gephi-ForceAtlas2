@@ -1,11 +1,15 @@
 package crowdlanes.stages;
 
+import crowdlanes.util.Coords2D;
+import crowdlanes.util.GraphUtil;
 import com.google.common.collect.EvictingQueue;
-import crowdlanes.*;
 import crowdlanes.config.CurrentConfig;
-import static crowdlanes.config.ParamNames.*;
+import static crowdlanes.config.ConfigParamNames.*;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import org.gephi.data.attributes.api.AttributeController;
 import org.gephi.data.attributes.api.AttributeOrigin;
 import org.gephi.data.attributes.api.AttributeTable;
@@ -19,7 +23,6 @@ import org.openide.util.Lookup;
 
 public class VelocityProcessorStage extends PipelineStage {
 
-    public final static String SECTION = "VelocityVector";
     public final static String VELOCITY_VECTOR = "VelocityVector";
 
     private final HashMap<String, EvictingQueue<Coords2D>> velocityVectors;
@@ -41,6 +44,45 @@ public class VelocityProcessorStage extends PipelineStage {
         if (nodesTable.hasColumn(VELOCITY_VECTOR) == false) {
             nodesTable.addColumn(VELOCITY_VECTOR, AttributeType.LIST_FLOAT, AttributeOrigin.COMPUTED);
         }
+    }
+
+    private void setMedianVelocity(Node n) {
+        String id = n.getNodeData().getId();
+        EvictingQueue<Coords2D> vec = velocityVectors.get(id);
+        if (vec.size() < 2) {
+            return;
+        }
+
+        List<Float> xs = new ArrayList<>();
+        List<Float> ys = new ArrayList<>();
+
+        Coords2D prev = null;
+        for (Coords2D crr : vec) {
+            if (prev == null) {
+                prev = crr;
+                continue;
+            }
+
+            xs.add(crr.x - prev.x);
+            ys.add(crr.y - prev.y);
+            prev = crr;
+        }
+
+        Collections.sort(xs);
+        Collections.sort(ys);
+
+        float x, y;
+        int mid = xs.size() / 2;
+
+        if (xs.size() % 2 != 0) {
+            x = xs.get(mid);
+            y = ys.get(mid);
+        } else {
+            x = (xs.get(mid - 1) + xs.get(mid)) / 2;
+            y = (ys.get(mid - 1) + ys.get(mid)) / 2;
+        }
+
+        n.getAttributes().setValue(VELOCITY_VECTOR, new FloatList(new Float[]{x, y}));
     }
 
     private void setAverageVelocity(Node n) {
@@ -71,13 +113,12 @@ public class VelocityProcessorStage extends PipelineStage {
         float y = (float) (displacementY / count);
 
         n.getAttributes().setValue(VELOCITY_VECTOR, new FloatList(new Float[]{x, y}));
-        /*
-         if (n.getId() == 1) {
-         System.err.println("size: " + vec.size());
-         System.err.println("vec: " + vec);
-         System.err.println("res: " + n.getAttributes().getValue(VELOCITY_VECTOR));
-         }
-         */
+
+        //if (n.getId() == 1) {
+        //System.err.println("size: " + vec.size());
+        //System.err.println("vec: " + vec);
+        //System.err.println("res: " + n.getAttributes().getValue(VELOCITY_VECTOR));
+        //}
     }
 
     private void updateVelocityVector(Node n) {
@@ -94,12 +135,13 @@ public class VelocityProcessorStage extends PipelineStage {
         Graph g = graphModel.getGraphVisible();
         for (Node n : g.getNodes()) {
             updateVelocityVector(n);
+            //setMedianVelocity(n);
             setAverageVelocity(n);
             //info("*");
         }
         info("\n");
 
-        if (GraphUtil.isColumnNull(VelocityProcessorStage.VELOCITY_VECTOR)) {
+        if (GraphUtil.isNodeColumnNull(VelocityProcessorStage.VELOCITY_VECTOR)) {
             return;
         }
 

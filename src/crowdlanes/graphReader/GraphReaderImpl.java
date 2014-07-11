@@ -44,18 +44,14 @@ public final class GraphReaderImpl implements GraphReader {
     private Query dynamicQuery;
     private FileObject fileObject;
 
-    public GraphReaderImpl() {
-
-    }
-
     @Override
     public void importFile(String filePath) throws FileNotFoundException, IOException {
-        fileObject = FileUtil.toFileObject(new File(filePath));
-        File file = FileUtil.toFile(fileObject);
-
+        File file = new File(filePath);
         if (!file.isFile() || !file.exists()) {
             throw new FileNotFoundException("Problem loading file: " + filePath);
         }
+
+        fileObject = FileUtil.toFileObject(file);
 
         if (fileObject.hasExt("gexf")) {
             importGraphGexf();

@@ -1,6 +1,6 @@
 package crowdlanes.stages;
 
-import crowdlanes.GraphUtil;
+import crowdlanes.util.GraphUtil;
 import crowdlanes.config.ResultsDir;
 import crowdlanes.metrics.SpeedGroupSimilarity;
 import crowdlanes.config.CurrentConfig;

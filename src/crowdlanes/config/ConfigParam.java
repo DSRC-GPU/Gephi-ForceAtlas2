@@ -1,6 +1,5 @@
 package crowdlanes.config;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Iterator;
 import org.ini4j.Wini;
@@ -19,7 +18,7 @@ public class ConfigParam extends HashSet<ConfigParam.Value> {
 
     private final Class clazz;
 
-    public ConfigParam(Wini config, Object sectionName, Class clazz, String optionName) throws IOException {
+    public ConfigParam(Wini config, Object sectionName, Class clazz, String optionName) {
         this.clazz = clazz;
         this.config = config;
         this.sectionName = sectionName;
@@ -179,6 +178,9 @@ public class ConfigParam extends HashSet<ConfigParam.Value> {
 
     public void read() {
         String param = config.get(sectionName, optionName, String.class);
+        if (param == null)
+            throw  new IllegalArgumentException("Cannot read param: " + sectionName + " " + optionName);
+        
         String parts[] = param.split(":");
         if (parts.length == 1) {
             parts = param.split(",");

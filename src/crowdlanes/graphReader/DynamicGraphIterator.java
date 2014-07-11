@@ -1,7 +1,7 @@
-package crowdlanes;
+package crowdlanes.graphReader;
 
 import crowdlanes.config.CurrentConfig;
-import static crowdlanes.config.ParamNames.*;
+import static crowdlanes.config.ConfigParamNames.*;
 import crowdlanes.graphReader.GraphReader;
 import java.util.Iterator;
 import org.gephi.dynamic.api.DynamicController;
@@ -17,7 +17,6 @@ import org.openide.util.Lookup;
 
 public class DynamicGraphIterator implements Iterable<Graph> {
 
-    public final static String SECTION = "GraphIterator";
     private GraphView crrGraph;
     private boolean hasChanged;
     private final GraphModel graphModel;
@@ -127,7 +126,7 @@ public class DynamicGraphIterator implements Iterable<Graph> {
             lastFrom = from;
             lastTo = to;
             if (to < max) {
-                from = Math.max(from + step, min);
+                from = Math.min(from + step, max);
                 to = Math.min(to + step, max);
                 someAction = true;
             } else {

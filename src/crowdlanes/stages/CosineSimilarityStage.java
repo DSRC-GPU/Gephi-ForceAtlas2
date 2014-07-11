@@ -1,12 +1,7 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package crowdlanes.stages;
 
 import crowdlanes.metrics.CosineGroupSimilarity;
-import crowdlanes.GraphUtil;
+import crowdlanes.util.GraphUtil;
 import crowdlanes.config.ResultsDir;
 import crowdlanes.config.CurrentConfig;
 import java.io.File;
@@ -22,7 +17,7 @@ public class CosineSimilarityStage extends PipelineStage {
 
     private PrintWriter cosineSimWriter;
     private final CosineGroupSimilarity cosineGroupSimilarity;
-    String fname;
+    private String fname;
 
     public CosineSimilarityStage(String fname, String column) {
         this.fname = fname;

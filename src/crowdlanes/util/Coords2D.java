@@ -1,4 +1,4 @@
-package crowdlanes;
+package crowdlanes.util;
 
 public class Coords2D {
 

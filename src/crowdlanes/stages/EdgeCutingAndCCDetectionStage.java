@@ -1,9 +1,9 @@
 package crowdlanes.stages;
 
-import crowdlanes.GraphUtil;
-import crowdlanes.Simulation;
 import crowdlanes.config.CurrentConfig;
-import static crowdlanes.stages.DoPStageCoords.EDGE_CUT;
+import static crowdlanes.stages.dop.Dop.EDGE_CUT;
+import crowdlanes.util.GraphUtil;
+import java.util.Arrays;
 import org.gephi.graph.api.Edge;
 import org.gephi.graph.api.Graph;
 import org.gephi.graph.api.GraphController;
@@ -21,14 +21,16 @@ public class EdgeCutingAndCCDetectionStage extends PipelineStage {
 
     @Override
     public void run(double from, double to, boolean hasChanged) {
-        if (GraphUtil.isColumnNull(PCADoPStage.EDGE_CUT)) {
-            return; 
+        if (GraphUtil.isEdgeColumnNull(EDGE_CUT)) {
+            return;
         }
 
         Graph g = graphModel.getGraphVisible();
         cutEdges(g);
         ConnectedComponents cc = GraphUtil.getCC();
-        System.out.println("Connected Componets: " + cc.getComponentsSize());
+        int[] componentsSize = cc.getComponentsSize();
+        System.out.println("Connected Componets: " + cc.getConnectedComponentsCount());
+        System.err.println("Connected comp sizes: " + Arrays.toString(componentsSize));
 
     }
 
@@ -49,5 +51,4 @@ public class EdgeCutingAndCCDetectionStage extends PipelineStage {
     @Override
     public void tearDown() {
     }
-
 }

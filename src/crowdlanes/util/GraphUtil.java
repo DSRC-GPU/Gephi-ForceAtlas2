@@ -1,4 +1,4 @@
-package crowdlanes;
+package crowdlanes.util;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -10,6 +10,7 @@ import java.util.Set;
 import org.gephi.data.attributes.api.AttributeController;
 import org.gephi.data.attributes.api.AttributeModel;
 import org.gephi.data.attributes.type.FloatList;
+import org.gephi.graph.api.Edge;
 import org.gephi.graph.api.Graph;
 import org.gephi.graph.api.GraphController;
 import org.gephi.graph.api.GraphModel;
@@ -109,10 +110,21 @@ public final class GraphUtil {
         return cc;
     }
 
-    public static boolean isColumnNull(String columnName) {
+    public static boolean isNodeColumnNull(String columnName) {
         Graph g = Lookup.getDefault().lookup(GraphController.class).getModel().getGraphVisible();
         Node n = g.getNodes().toArray()[0];
         Object val = n.getAttributes().getValue(columnName);
+        if (val == null) {
+            return true;
+        }
+
+        return false;
+    }
+    
+    public static boolean isEdgeColumnNull(String columnName) {
+        Graph g = Lookup.getDefault().lookup(GraphController.class).getModel().getGraphVisible();
+        Edge e = g.getEdges().toArray()[0];
+        Object val = e.getAttributes().getValue(columnName);
         if (val == null) {
             return true;
         }

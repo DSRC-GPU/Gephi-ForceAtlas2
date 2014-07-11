@@ -1,7 +1,7 @@
 package crowdlanes.metrics;
 
-import crowdlanes.GraphUtil;
-import static crowdlanes.GraphUtil.getVector;
+import crowdlanes.util.GraphUtil;
+import static crowdlanes.util.GraphUtil.getVector;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;

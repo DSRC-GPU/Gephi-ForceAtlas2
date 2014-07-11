@@ -1,9 +1,11 @@
 package crowdlanes.stages;
 
-import crowdlanes.GraphUtil;
-import static crowdlanes.GraphUtil.getVector;
-import crowdlanes.config.ResultsDir;
 import crowdlanes.config.CurrentConfig;
+import crowdlanes.config.ResultsDir;
+import static crowdlanes.stages.dop.Dop.PCA_PHI_COARSE;
+import static crowdlanes.stages.dop.Dop.PCA_PHI_FINE;
+import crowdlanes.util.GraphUtil;
+import static crowdlanes.util.GraphUtil.getVector;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -44,7 +46,6 @@ public class GraphPrinterStage extends PipelineStage {
                 return n1.getId() - n2.getId();
             }
         });
-        
 
         writer_nodes.println("NumNodes: " + graphModel.getGraphVisible().getNodeCount());
         for (int i = 0; i < nodes.length; i++) {
@@ -54,16 +55,18 @@ public class GraphPrinterStage extends PipelineStage {
             String id = n.getNodeData().getId();
 
             FloatList velocity = getVector(n, VelocityProcessorStage.VELOCITY_VECTOR);
-            FloatList velocitySmoothened1 = getVector(n, SmootheningStage.FINE_SMOOTHENING);
-            FloatList velocitySmoothened2 = getVector(n, SmootheningStage.COARSE_SMOOTHENING);
-            double phi_fine = (Double) n.getAttributes().getValue(PCAStage.PCA_PHI_FINE);
-            double phi_coarse = (Double) n.getAttributes().getValue(PCAStage.PCA_PHI_COARSE);
+            //double vel_pca = (Double) n.getAttributes().getValue(PCAVelocityVector.PCA_VELOCITY_VECTOR);
+            //FloatList velocitySmoothened1 = getVector(n, SmootheningStage.FINE_SMOOTHENING);
+            //FloatList velocitySmoothened2 = getVector(n, SmootheningStage.COARSE_SMOOTHENING);
+            double phi_fine = (Double) n.getAttributes().getValue(PCA_PHI_FINE);
+            double phi_coarse = (Double) n.getAttributes().getValue(PCA_PHI_COARSE);
 
             writer_nodes.print(id + " " + g + " " + cc);
             writer_nodes.print(" (" + n.getNodeData().x() + "," + n.getNodeData().y() + ")");
             writer_nodes.print(" (" + velocity.getItem(0) + "," + velocity.getItem(1) + ")");
-            writer_nodes.print(" (" + velocitySmoothened1.getItem(0) + "," + velocitySmoothened1.getItem(1) + ")");
-            writer_nodes.print(" (" + velocitySmoothened2.getItem(0) + "," + velocitySmoothened2.getItem(1) + ")");
+            //writer_nodes.print(" (" + vel_pca + "," + vel_pca + ")");
+            //writer_nodes.print(" (" + velocitySmoothened1.getItem(0) + "," + velocitySmoothened1.getItem(1) + ")");
+            //writer_nodes.print(" (" + velocitySmoothened2.getItem(0) + "," + velocitySmoothened2.getItem(1) + ")");
             writer_nodes.print(" (" + phi_fine + "," + phi_coarse + ")");
             writer_nodes.println();
         }

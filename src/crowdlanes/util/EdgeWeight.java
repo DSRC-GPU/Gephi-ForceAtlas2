@@ -1,4 +1,4 @@
-package crowdlanes;
+package crowdlanes.util;
 
 import org.gephi.data.attributes.api.AttributeColumn;
 import org.gephi.data.attributes.api.AttributeController;
