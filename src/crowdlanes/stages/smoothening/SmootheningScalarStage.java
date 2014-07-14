@@ -8,18 +8,12 @@ import crowdlanes.stages.PipelineStage;
 import crowdlanes.stages.VelocityProcessorStage;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 import org.gephi.data.attributes.api.AttributeColumn;
-import org.gephi.data.attributes.api.AttributeController;
-import org.gephi.data.attributes.api.AttributeOrigin;
-import org.gephi.data.attributes.api.AttributeTable;
 import org.gephi.data.attributes.api.AttributeType;
-import org.gephi.data.attributes.type.FloatList;
 import org.gephi.graph.api.Edge;
 import org.gephi.graph.api.Graph;
-import org.gephi.graph.api.GraphController;
-import org.gephi.graph.api.GraphModel;
 import org.gephi.graph.api.Node;
-import org.openide.util.Lookup;
 
 public class SmootheningScalarStage extends PipelineStage {
 
@@ -27,7 +21,6 @@ public class SmootheningScalarStage extends PipelineStage {
     private final static String AVG_COSINE_SIM = "cosineSimilarity";
     private final static String AVG_EDGE_WEIGHTS = "edgeWeights";
 
-    private final GraphModel graphModel;
     private boolean normalAverage;
     private boolean cosineSimWeights;
     private boolean edgeWeights;
@@ -41,24 +34,17 @@ public class SmootheningScalarStage extends PipelineStage {
     private final AttributeColumn outputColumn;
 
     public SmootheningScalarStage(String outputColumn, String phiName, String noRoundsParamName, SmootheningDataProvider dp) {
+        super();
         this.dp = dp;
         this.state = new HashMap<>();
         this.phiParamName = phiName;
         this.noRoundsParamName = noRoundsParamName;
-
-        graphModel = Lookup.getDefault().lookup(GraphController.class).getModel();
-        AttributeController attributeController = Lookup.getDefault().lookup(AttributeController.class);
-        AttributeTable nodesTable = attributeController.getModel().getNodeTable();
-        if (nodesTable.hasColumn(outputColumn) == false) {
-            this.outputColumn = nodesTable.addColumn(outputColumn, AttributeType.DOUBLE, AttributeOrigin.COMPUTED);
-        } else {
-            this.outputColumn = nodesTable.getColumn(outputColumn);
-        }
+        this.outputColumn = addNodeColumn(outputColumn, AttributeType.DOUBLE);
     }
 
     private void setCosineSimWeight(Edge e) {
-        FloatList srcDir = VelocityProcessorStage.getVelocityVector(e.getSource());
-        FloatList dstDir = VelocityProcessorStage.getVelocityVector(e.getTarget());
+        Vector2D srcDir = VelocityProcessorStage.getVelocityVector(e.getSource());
+        Vector2D dstDir = VelocityProcessorStage.getVelocityVector(e.getTarget());
         double cs = CosineSimilarity.angularSimilarity(srcDir, dstDir);
         if (!Double.isNaN(cs)) {
             e.setWeight((float) cs);
@@ -107,10 +93,9 @@ public class SmootheningScalarStage extends PipelineStage {
             double totalWeight = 1;
 
             for (Node neighbour : graph.getNeighbors(n)) {
-                Edge e = graph.getEdge(n, neighbour);
-                double weight = e.getWeight();
+                double weight = graph.getEdge(n, neighbour).getWeight();
                 Double v = (Double) neighbour.getAttributes().getValue(outputColumn.getIndex());
-                
+
                 sum += (v * weight);
                 totalWeight += weight;
             }
@@ -122,11 +107,8 @@ public class SmootheningScalarStage extends PipelineStage {
 
     private void endRound(Graph graph) {
         for (Node n : graph.getNodes()) {
-
-            Double v = dp.getValue(n);
             double neighSum = state.get(n.getId());
-
-            double smoothenedVal = ((1 - phi) * neighSum) + (phi * v);
+            double smoothenedVal = ((1 - phi) * neighSum) + (phi * dp.getValue(n));
             n.getAttributes().setValue(outputColumn.getIndex(), smoothenedVal);
         }
     }
@@ -142,7 +124,6 @@ public class SmootheningScalarStage extends PipelineStage {
             runRound(g);
             endRound(g);
         }
-
         info("\n");
     }
 
@@ -180,9 +161,8 @@ public class SmootheningScalarStage extends PipelineStage {
     public void tearDown() {
         state.clear();
     }
-    
+
     public AttributeColumn getOutputColumn() {
         return outputColumn;
     }
-
 }

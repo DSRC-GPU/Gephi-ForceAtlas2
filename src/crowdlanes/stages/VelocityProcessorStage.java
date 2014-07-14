@@ -1,130 +1,75 @@
 package crowdlanes.stages;
 
-import crowdlanes.util.Coords2D;
-import crowdlanes.util.GraphUtil;
 import com.google.common.collect.EvictingQueue;
-import crowdlanes.config.CurrentConfig;
 import static crowdlanes.config.ConfigParamNames.*;
+import crowdlanes.config.CurrentConfig;
+import crowdlanes.util.GraphUtil;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
-import org.gephi.data.attributes.api.AttributeController;
-import org.gephi.data.attributes.api.AttributeOrigin;
-import org.gephi.data.attributes.api.AttributeTable;
+import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.gephi.data.attributes.api.AttributeType;
-import org.gephi.data.attributes.type.FloatList;
+import org.gephi.data.attributes.type.DoubleList;
 import org.gephi.graph.api.Graph;
-import org.gephi.graph.api.GraphController;
-import org.gephi.graph.api.GraphModel;
 import org.gephi.graph.api.Node;
-import org.openide.util.Lookup;
 
 public class VelocityProcessorStage extends PipelineStage {
 
     public final static String VELOCITY_VECTOR = "VelocityVector";
 
-    private final HashMap<String, EvictingQueue<Coords2D>> velocityVectors;
+    private final HashMap<String, EvictingQueue<Vector2D>> velocityVectors;
     private final SpeedSimilarityStage sss;
     private final CosineSimilarityStage csc;
     private int crrWindowSize;
-    private final GraphModel graphModel;
     private Integer windowSize;
 
     public VelocityProcessorStage() {
-
+        super();
         velocityVectors = new HashMap<>();
         sss = new SpeedSimilarityStage("speed_sim", VELOCITY_VECTOR);
         csc = new CosineSimilarityStage("cosine_sim", VELOCITY_VECTOR);
-        graphModel = Lookup.getDefault().lookup(GraphController.class).getModel();
-
-        AttributeController attributeController = Lookup.getDefault().lookup(AttributeController.class);
-        AttributeTable nodesTable = attributeController.getModel().getNodeTable();
-        if (nodesTable.hasColumn(VELOCITY_VECTOR) == false) {
-            nodesTable.addColumn(VELOCITY_VECTOR, AttributeType.LIST_FLOAT, AttributeOrigin.COMPUTED);
-        }
-    }
-
-    private void setMedianVelocity(Node n) {
-        String id = n.getNodeData().getId();
-        EvictingQueue<Coords2D> vec = velocityVectors.get(id);
-        if (vec.size() < 2) {
-            return;
-        }
-
-        List<Float> xs = new ArrayList<>();
-        List<Float> ys = new ArrayList<>();
-
-        Coords2D prev = null;
-        for (Coords2D crr : vec) {
-            if (prev == null) {
-                prev = crr;
-                continue;
-            }
-
-            xs.add(crr.x - prev.x);
-            ys.add(crr.y - prev.y);
-            prev = crr;
-        }
-
-        Collections.sort(xs);
-        Collections.sort(ys);
-
-        float x, y;
-        int mid = xs.size() / 2;
-
-        if (xs.size() % 2 != 0) {
-            x = xs.get(mid);
-            y = ys.get(mid);
-        } else {
-            x = (xs.get(mid - 1) + xs.get(mid)) / 2;
-            y = (ys.get(mid - 1) + ys.get(mid)) / 2;
-        }
-
-        n.getAttributes().setValue(VELOCITY_VECTOR, new FloatList(new Float[]{x, y}));
+        addNodeColumn(VELOCITY_VECTOR, AttributeType.LIST_DOUBLE);
     }
 
     private void setAverageVelocity(Node n) {
         String id = n.getNodeData().getId();
-        EvictingQueue<Coords2D> vec = velocityVectors.get(id);
+        EvictingQueue<Vector2D> vec = velocityVectors.get(id);
         if (vec.size() < 2) {
             return;
         }
 
-        int count = 0;
-        double displacementX = 0;
-        double displacementY = 0;
-        Coords2D prev = null;
+        DescriptiveStatistics dsX = new DescriptiveStatistics();
+        DescriptiveStatistics dsY = new DescriptiveStatistics();
 
-        for (Coords2D crr : vec) {
+        /*
+         SimpleRegression regression = new SimpleRegression();
+         for (Vector2D v : vec) {
+         regression.addData(v.getX(), v.getY());
+         } 
+         System.err.println("angle: " +  Math.toDegrees(Math.atan(regression.getSlope())));
+         */
+        Vector2D prev = null;
+        for (Vector2D crr : vec) {
             if (prev == null) {
                 prev = crr;
                 continue;
             }
 
-            displacementX += (crr.x - prev.x);
-            displacementY += (crr.y - prev.y);
+            Vector2D diff = crr.subtract(prev);
+            dsX.addValue(diff.getX());
+            dsY.addValue(diff.getY());
             prev = crr;
-            count++;
         }
 
-        float x = (float) (displacementX / count);
-        float y = (float) (displacementY / count);
+        n.getAttributes().setValue(VELOCITY_VECTOR, new DoubleList(new Double[]{dsX.getMean(), dsY.getMean()}));
 
-        n.getAttributes().setValue(VELOCITY_VECTOR, new FloatList(new Float[]{x, y}));
-
-        //if (n.getId() == 1) {
-        //System.err.println("size: " + vec.size());
-        //System.err.println("vec: " + vec);
-        //System.err.println("res: " + n.getAttributes().getValue(VELOCITY_VECTOR));
-        //}
     }
 
     private void updateVelocityVector(Node n) {
         String id = n.getNodeData().getId();
-        EvictingQueue<Coords2D> vec = velocityVectors.get(id);
-        Coords2D c = new Coords2D(n.getNodeData().x(), n.getNodeData().y());
+        EvictingQueue<Vector2D> vec = velocityVectors.get(id);
+        Vector2D c = new Vector2D(n.getNodeData().x(), n.getNodeData().y());
         vec.offer(c);
     }
 
@@ -135,9 +80,7 @@ public class VelocityProcessorStage extends PipelineStage {
         Graph g = graphModel.getGraphVisible();
         for (Node n : g.getNodes()) {
             updateVelocityVector(n);
-            //setMedianVelocity(n);
             setAverageVelocity(n);
-            //info("*");
         }
         info("\n");
 
@@ -149,9 +92,8 @@ public class VelocityProcessorStage extends PipelineStage {
         csc.run(from, to, hasChanged);
     }
 
-    public static FloatList getVelocityVector(Node n) {
-        FloatList vals = (FloatList) n.getAttributes().getValue(VELOCITY_VECTOR);
-        return vals;
+    public static Vector2D getVelocityVector(Node n) {
+        return GraphUtil.getVector(n, VELOCITY_VECTOR);
     }
 
     @Override
@@ -166,7 +108,7 @@ public class VelocityProcessorStage extends PipelineStage {
 
         for (Node n : graphModel.getGraphVisible().getNodes()) {
             String id = n.getNodeData().getId();
-            EvictingQueue<Coords2D> q = EvictingQueue.create(windowSize);
+            EvictingQueue<Vector2D> q = EvictingQueue.create(windowSize);
             velocityVectors.put(id, q);
         }
     }

@@ -3,7 +3,7 @@ package crowdlanes.config;
 public class ConfigParamNames {
 
     
-    public final static String CONFIG_PARAM_USE_PCA_ON_VELOCITY_VEC = "UsePCAonVelVectors";
+    public final static String CONFIG_PARAM_USE_PCA_BEFORE_SMOOTHENING = "UsePCABeforeSmoothening";
     public final static String CONFIG_PARAM_USE_GROUNDTRUTH = "UseGroundTruth";
     public final static String CONFIG_PARAM_INITIAL_EMBEDDING_SEED = "InitialEmbeddingSeed";
     public final static String CONFIG_PARAM_EMBEDDING_TYPE = "EmbeddingType";

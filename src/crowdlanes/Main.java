@@ -6,6 +6,7 @@ import crowdlanes.config.ParameterSweeper;
 import crowdlanes.graphReader.GraphReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.openide.util.Lookup;
 
 public class Main {
@@ -24,7 +25,7 @@ public class Main {
         ps.readConfig(args[1]);
 
         ps.registerParam(GENERAL_SECTION, Boolean.class, CONFIG_PARAM_USE_GROUNDTRUTH);
-        ps.registerParam(DOP_SECTION, Boolean.class, CONFIG_PARAM_USE_PCA_ON_VELOCITY_VEC);
+        ps.registerParam(DOP_SECTION, Boolean.class, CONFIG_PARAM_USE_PCA_BEFORE_SMOOTHENING);
         ps.registerParam(EMBEDDING_SECTION, Integer.class, CONFIG_PARAM_INITIAL_EMBEDDING_SEED);
         ps.registerParam(EMBEDDING_SECTION, String.class, CONFIG_PARAM_EMBEDDING_TYPE);
         ps.registerParam(EMBEDDING_SECTION, Integer.class, CONFIG_PARAM_FORCE_ATLAS_NO_ITER);

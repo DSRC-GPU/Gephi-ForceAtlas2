@@ -8,8 +8,6 @@ import org.gephi.data.attributes.api.AttributeModel;
 import org.gephi.data.attributes.api.Estimator;
 import org.gephi.data.attributes.type.DynamicFloat;
 import org.gephi.graph.api.Graph;
-import org.gephi.graph.api.GraphController;
-import org.gephi.graph.api.GraphModel;
 import org.gephi.graph.api.Node;
 import org.openide.util.Lookup;
 
@@ -17,13 +15,11 @@ public class SetNodesPosStage extends PipelineStage {
 
     private final static String XPOS_COLUMN = "xpos";
     private final static String YPOS_COLUMN = "ypos";
-    private final GraphModel graphModel;
     private AttributeColumn xpos;
     private AttributeColumn ypos;
 
     public SetNodesPosStage() {
-        graphModel = Lookup.getDefault().lookup(GraphController.class).getModel();
-
+        super();
     }
 
     @Override

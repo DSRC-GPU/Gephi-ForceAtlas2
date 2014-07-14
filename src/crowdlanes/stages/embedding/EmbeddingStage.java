@@ -7,13 +7,10 @@ import crowdlanes.embeddings.MaximalMatchingCoarsening;
 import crowdlanes.embeddings.MultiLevelLayout;
 import crowdlanes.stages.PipelineStage;
 import java.io.PrintWriter;
-import org.gephi.graph.api.GraphController;
-import org.gephi.graph.api.GraphModel;
 import org.gephi.layout.plugin.force.StepDisplacement;
 import org.gephi.layout.plugin.force.yifanHu.YifanHuLayout;
 import org.gephi.layout.plugin.forceAtlas2.ForceAtlas2;
 import org.gephi.layout.spi.Layout;
-import org.openide.util.Lookup;
 
 public class EmbeddingStage extends PipelineStage {
 
@@ -23,7 +20,7 @@ public class EmbeddingStage extends PipelineStage {
     private boolean initAlgo;
     private boolean endAlgo;
     private Layout layout;
-    private final GraphModel graphModel;
+
 
     private Integer seed;
     private int noIters;
@@ -31,7 +28,7 @@ public class EmbeddingStage extends PipelineStage {
     private boolean useEdgeWeights;
 
     public EmbeddingStage() {
-        graphModel = Lookup.getDefault().lookup(GraphController.class).getModel();
+        super();
     }
 
     private void initializeEmbedding(Integer seed) {

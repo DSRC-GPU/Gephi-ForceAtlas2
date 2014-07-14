@@ -2,10 +2,8 @@ package crowdlanes.stages;
 
 import crowdlanes.config.CurrentConfig;
 import crowdlanes.config.ResultsDir;
-import static crowdlanes.stages.dop.Dop.PCA_PHI_COARSE;
-import static crowdlanes.stages.dop.Dop.PCA_PHI_FINE;
+import crowdlanes.stages.dop.Dop;
 import crowdlanes.util.GraphUtil;
-import static crowdlanes.util.GraphUtil.getVector;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -13,61 +11,57 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Comparator;
+import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 import org.gephi.data.attributes.api.AttributeColumn;
-import org.gephi.data.attributes.api.AttributeController;
 import org.gephi.data.attributes.api.AttributeModel;
-import org.gephi.data.attributes.type.FloatList;
 import org.gephi.graph.api.Edge;
-import org.gephi.graph.api.GraphController;
-import org.gephi.graph.api.GraphModel;
 import org.gephi.graph.api.Node;
 import org.gephi.statistics.plugin.ConnectedComponents;
 import org.openide.util.Exceptions;
-import org.openide.util.Lookup;
 
 public class GraphPrinterStage extends PipelineStage {
 
     private int step;
     private PrintWriter writer_nodes;
     private PrintWriter writer_edges;
-    private final GraphModel graphModel;
 
     public GraphPrinterStage() {
-        graphModel = Lookup.getDefault().lookup(GraphController.class).getModel();
+        super();
     }
 
     public void printNodes() {
-        AttributeModel attributeModel = Lookup.getDefault().lookup(AttributeController.class).getModel();
+        AttributeModel attributeModel = attributeController.getModel();
         AttributeColumn groupColumn = attributeModel.getNodeTable().getColumn(ConnectedComponents.WEAKLY);
 
         Node[] nodes = graphModel.getGraphVisible().getNodes().toArray();
         Arrays.sort(nodes, new Comparator<Node>() {
+            @Override
             public int compare(Node n1, Node n2) {
                 return n1.getId() - n2.getId();
             }
         });
 
         writer_nodes.println("NumNodes: " + graphModel.getGraphVisible().getNodeCount());
-        for (int i = 0; i < nodes.length; i++) {
-            Node n = nodes[i];
+        for (Node n : nodes) {
             Integer g = (Integer) n.getAttributes().getValue(GraphUtil.GROUP_COLUMN_NAME);
             Integer cc = groupColumn != null ? (Integer) n.getAttributes().getValue(groupColumn.getIndex()) : 1;
             String id = n.getNodeData().getId();
 
-            FloatList velocity = getVector(n, VelocityProcessorStage.VELOCITY_VECTOR);
-            //double vel_pca = (Double) n.getAttributes().getValue(PCAVelocityVector.PCA_VELOCITY_VECTOR);
-            //FloatList velocitySmoothened1 = getVector(n, SmootheningStage.FINE_SMOOTHENING);
-            //FloatList velocitySmoothened2 = getVector(n, SmootheningStage.COARSE_SMOOTHENING);
-            double phi_fine = (Double) n.getAttributes().getValue(PCA_PHI_FINE);
-            double phi_coarse = (Double) n.getAttributes().getValue(PCA_PHI_COARSE);
+            writer_nodes.print(id + "," + g + "," + cc);
+            writer_nodes.print("," + n.getNodeData().x() + " " + n.getNodeData().y());
 
-            writer_nodes.print(id + " " + g + " " + cc);
-            writer_nodes.print(" (" + n.getNodeData().x() + "," + n.getNodeData().y() + ")");
-            writer_nodes.print(" (" + velocity.getItem(0) + "," + velocity.getItem(1) + ")");
-            //writer_nodes.print(" (" + vel_pca + "," + vel_pca + ")");
-            //writer_nodes.print(" (" + velocitySmoothened1.getItem(0) + "," + velocitySmoothened1.getItem(1) + ")");
-            //writer_nodes.print(" (" + velocitySmoothened2.getItem(0) + "," + velocitySmoothened2.getItem(1) + ")");
-            writer_nodes.print(" (" + phi_fine + "," + phi_coarse + ")");
+            Vector2D velocity = VelocityProcessorStage.getVelocityVector(n);
+            writer_nodes.print("," + velocity.getX() + " " + velocity.getY());
+
+            Vector2D smoothFineVel = Dop.getFineVector(n);
+            writer_nodes.print("," + smoothFineVel.getX() + " " + smoothFineVel.getY());
+
+            Vector2D smoothCoarseVel = Dop.getCoarseVector(n);
+            writer_nodes.print("," + smoothCoarseVel.getX() + " " + smoothCoarseVel.getY());
+
+            double pcaFine = Dop.getFinePCA(n);
+            double pcaCoarse = Dop.getCoarsePCA(n);
+            writer_nodes.print("," + pcaFine + "," + pcaCoarse);
             writer_nodes.println();
         }
     }
@@ -85,10 +79,10 @@ public class GraphPrinterStage extends PipelineStage {
             return;
         }
 
-        System.err.println("Step: " + (step - 1));
         writer_nodes.println("from " + from + " to " + to);
-        writer_edges.println("from " + from + " to " + to);
         printNodes();
+
+        writer_edges.println("from " + from + " to " + to);
         printEdges();
     }
 
@@ -105,6 +99,8 @@ public class GraphPrinterStage extends PipelineStage {
         } catch (IOException ex) {
             Exceptions.printStackTrace(ex);
         }
+
+        writer_nodes.println("ID,GROUP,CC,EMBEDDING_POS,VELOCITY_VECTOR,FINE_SMOOTH_VEL_VECTOR,COARSE_SMOOTH_VEL_VECTOR,FINE_PCA,COARSE_PCA");
     }
 
     @Override

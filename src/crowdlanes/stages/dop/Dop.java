@@ -3,18 +3,16 @@ package crowdlanes.stages.dop;
 import crowdlanes.config.ConfigParamNames;
 import crowdlanes.config.CurrentConfig;
 import crowdlanes.stages.PipelineStage;
+import static crowdlanes.stages.dop.Dop_VelocityVectors.SMOOTHENING_COORDS_COARSE_X;
+import static crowdlanes.stages.dop.Dop_VelocityVectors.SMOOTHENING_COORDS_FINE_X;
+import static crowdlanes.stages.dop.Dop_VelocityVectors.SMOOTHENING_COORDS_FINE_Y;
 import crowdlanes.util.GraphUtil;
 import java.io.PrintWriter;
-import org.gephi.data.attributes.api.AttributeController;
-import org.gephi.data.attributes.api.AttributeOrigin;
-import org.gephi.data.attributes.api.AttributeTable;
+import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 import org.gephi.data.attributes.api.AttributeType;
 import org.gephi.graph.api.Edge;
 import org.gephi.graph.api.Graph;
-import org.gephi.graph.api.GraphController;
-import org.gephi.graph.api.GraphModel;
 import org.gephi.graph.api.Node;
-import org.openide.util.Lookup;
 
 public class Dop extends PipelineStage {
 
@@ -29,16 +27,11 @@ public class Dop extends PipelineStage {
     private int correct_cuts;
     private int missed_cuts;
 
-    private final GraphModel graphModel;
     private PipelineStage dop;
 
     public Dop() {
-        graphModel = Lookup.getDefault().lookup(GraphController.class).getModel();
-        AttributeController attributeController = Lookup.getDefault().lookup(AttributeController.class);
-        AttributeTable edgesTable = attributeController.getModel().getEdgeTable();
-        if (edgesTable.hasColumn(EDGE_CUT) == false) {
-            edgesTable.addColumn(EDGE_CUT, AttributeType.BOOLEAN, AttributeOrigin.COMPUTED);
-        }
+        super();
+        addEdgeColumn(EDGE_CUT, AttributeType.BOOLEAN);
     }
 
     @Override
@@ -62,7 +55,7 @@ public class Dop extends PipelineStage {
 
     @Override
     public void setup(CurrentConfig cc) {
-        if (cc.getBooleanValue(ConfigParamNames.CONFIG_PARAM_USE_PCA_ON_VELOCITY_VEC)) {
+        if (cc.getBooleanValue(ConfigParamNames.CONFIG_PARAM_USE_PCA_BEFORE_SMOOTHENING)) {
             dop = new Dop_PCA();
         } else {
             dop = new Dop_VelocityVectors();
@@ -123,6 +116,34 @@ public class Dop extends PipelineStage {
         }
     }
 
+    public static Vector2D getFineVector(Node n) {
+        if (GraphUtil.isNodeColumnNull(SMOOTHENING_COORDS_FINE_X)) {
+            return Vector2D.NaN;
+        }
+
+        double x = (double) n.getAttributes().getValue(SMOOTHENING_COORDS_FINE_X);
+        double y = (double) n.getAttributes().getValue(SMOOTHENING_COORDS_FINE_Y);
+        return new Vector2D(x, y);
+    }
+
+    public static Vector2D getCoarseVector(Node n) {
+        if (GraphUtil.isNodeColumnNull(SMOOTHENING_COORDS_COARSE_X)) {
+            return Vector2D.NaN;
+        }
+
+        double x = (double) n.getAttributes().getValue(SMOOTHENING_COORDS_COARSE_X);
+        double y = (double) n.getAttributes().getValue(SMOOTHENING_COORDS_COARSE_X);
+        return new Vector2D(x, y);
+    }
+
+    public static double getFinePCA(Node n) {
+        return (double) n.getAttributes().getValue(PCA_PHI_FINE);
+    }
+
+    public static double getCoarsePCA(Node n) {
+        return (double) n.getAttributes().getValue(PCA_PHI_COARSE);
+    }
+
     public int getIncorrectCuts() {
         return total_incorrect_cuts;
     }
@@ -135,6 +156,8 @@ public class Dop extends PipelineStage {
         return total_missed_cuts;
     }
 
+    @Override
     public void printParams(PrintWriter pw) {
+        dop.printParams(pw);
     }
 }

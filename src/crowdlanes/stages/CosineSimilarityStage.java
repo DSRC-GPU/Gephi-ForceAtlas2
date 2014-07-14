@@ -17,7 +17,7 @@ public class CosineSimilarityStage extends PipelineStage {
 
     private PrintWriter cosineSimWriter;
     private final CosineGroupSimilarity cosineGroupSimilarity;
-    private String fname;
+    private final String fname;
 
     public CosineSimilarityStage(String fname, String column) {
         this.fname = fname;

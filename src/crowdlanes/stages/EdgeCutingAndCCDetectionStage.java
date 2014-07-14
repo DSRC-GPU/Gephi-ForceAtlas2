@@ -6,17 +6,13 @@ import crowdlanes.util.GraphUtil;
 import java.util.Arrays;
 import org.gephi.graph.api.Edge;
 import org.gephi.graph.api.Graph;
-import org.gephi.graph.api.GraphController;
-import org.gephi.graph.api.GraphModel;
 import org.gephi.statistics.plugin.ConnectedComponents;
-import org.openide.util.Lookup;
 
 public class EdgeCutingAndCCDetectionStage extends PipelineStage {
 
-    private final GraphModel graphModel;
 
     public EdgeCutingAndCCDetectionStage() {
-        graphModel = Lookup.getDefault().lookup(GraphController.class).getModel();
+        super();
     }
 
     @Override

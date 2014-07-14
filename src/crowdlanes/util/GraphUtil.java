@@ -7,9 +7,10 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 import org.gephi.data.attributes.api.AttributeController;
 import org.gephi.data.attributes.api.AttributeModel;
-import org.gephi.data.attributes.type.FloatList;
+import org.gephi.data.attributes.type.DoubleList;
 import org.gephi.graph.api.Edge;
 import org.gephi.graph.api.Graph;
 import org.gephi.graph.api.GraphController;
@@ -88,11 +89,11 @@ public final class GraphUtil {
         return nodes;
     }
 
-    public static FloatList getVector(Node n, String columnName) {
-        FloatList vals = (FloatList) n.getAttributes().getValue(columnName);
+    public static Vector2D getVector(Node n, String columnName) {
+        DoubleList vals = (DoubleList) n.getAttributes().getValue(columnName);
         assert vals != null : "vals is null node: " + n;
         assert vals.size() == 2 : "vals size < 2: got: " + vals.size() + " node: " + n;
-        return vals;
+        return new Vector2D(vals.getItem(0), vals.getItem(1));
     }
 
     public static boolean sameGroup(Node n1, Node n2) {
