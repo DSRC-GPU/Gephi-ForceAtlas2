@@ -21,7 +21,6 @@ public class EmbeddingStage extends PipelineStage {
     private boolean endAlgo;
     private Layout layout;
 
-
     private Integer seed;
     private int noIters;
     private String embeddingType;
@@ -71,7 +70,9 @@ public class EmbeddingStage extends PipelineStage {
     private void initYifanHu(YifanHuLayout yifanHuLayout) {
         yifanHuLayout.setGraphModel(graphModel);
         yifanHuLayout.resetPropertiesValues();
-        yifanHuLayout.setOptimalDistance(100f);
+        //yifanHuLayout.setOptimalDistance(15f);
+        //yifanHuLayout.setInitialStep(1.5f);
+
         noIters = Integer.MAX_VALUE;
         initAlgo = true;
         endAlgo = true;

@@ -61,6 +61,7 @@ public class VelocityProcessorStage extends PipelineStage {
             dsY.addValue(diff.getY());
             prev = crr;
         }
+        
 
         n.getAttributes().setValue(VELOCITY_VECTOR, new DoubleList(new Double[]{dsX.getMean(), dsY.getMean()}));
 
