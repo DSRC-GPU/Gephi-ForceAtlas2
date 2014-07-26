@@ -26,17 +26,26 @@ public abstract class PipelineStage {
         if (nodesTable.hasColumn(name) == false) {
             nodesTable.addColumn(name, type, AttributeOrigin.COMPUTED);
         }
-        
+
         return nodesTable.getColumn(name);
     }
-    
-     protected AttributeColumn addEdgeColumn(String name, AttributeType type) {
+
+    protected AttributeColumn addEdgeColumn(String name, AttributeType type) {
         AttributeTable edgesTable = attributeController.getModel().getEdgeTable();
         if (edgesTable.hasColumn(name) == false) {
             edgesTable.addColumn(name, type, AttributeOrigin.COMPUTED);
         }
-        
+
         return edgesTable.getColumn(name);
+    }
+
+    protected AttributeColumn addGraphColumn(String name, AttributeType type) {
+        AttributeTable graphTable = attributeController.getModel().getGraphTable();
+        if (graphTable.hasColumn(name) == false) {
+            graphTable.addColumn(name, type, AttributeOrigin.COMPUTED);
+        }
+
+        return graphTable.getColumn(name);
     }
 
     public static boolean INFO = true;

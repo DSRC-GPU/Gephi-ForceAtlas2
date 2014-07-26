@@ -1,6 +1,5 @@
 package crowdlanes.embeddings;
 
-import static java.lang.Math.random;
 import java.util.Random;
 import org.gephi.graph.api.Edge;
 import org.gephi.graph.api.HierarchicalGraph;

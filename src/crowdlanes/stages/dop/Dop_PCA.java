@@ -22,22 +22,19 @@ public class Dop_PCA extends PipelineStage {
 
     private static final String PCA_VELOCITY_VECTOR = "PCA_VELOCITY_VECTOR";
 
-    private final PipelineStage smootheningFine;
-    private final PipelineStage smootheningCoarse;
+    private SmootheningScalarStage smootheningFine;
+    private SmootheningScalarStage smootheningCoarse;
+    private Float phiFine;
+    private Float phiCoarse;
+    private Integer noRoundsFine;
+    private Integer noRoundsCoarse;
+    private String avgMethod;
 
     public Dop_PCA() {
         super();
-        SmootheningDataProvider sdp = new SmootheningDataProvider() {
-
-            @Override
-            public double getValue(Node n) {
-                return (double) n.getAttributes().getValue(PCA_VELOCITY_VECTOR);
-            }
-        };
-                
+        addNodeColumn(PCA_PHI_FINE, AttributeType.DOUBLE);
+        addNodeColumn(PCA_PHI_COARSE, AttributeType.DOUBLE);
         addNodeColumn(PCA_VELOCITY_VECTOR, AttributeType.DOUBLE);
-        smootheningFine = new SmootheningScalarStage(PCA_PHI_FINE, CONFIG_PARAM_SMOOTHENING_PHI_FINE, CONFIG_PARAM_SMOOTHENING_NO_ROUNDS_FINE, sdp);
-        smootheningCoarse = new SmootheningScalarStage(PCA_PHI_COARSE, CONFIG_PARAM_SMOOTHENING_PHI_COARSE, CONFIG_PARAM_SMOOTHENING_NO_ROUNDS_COARSE, sdp);
     }
 
     @Override
@@ -48,20 +45,37 @@ public class Dop_PCA extends PipelineStage {
 
         Graph g = graphModel.getGraphVisible();
         runPCA(g);
-        smootheningFine.run(from, to, hasChanged);
-        smootheningCoarse.run(from, to, hasChanged);
+        smootheningFine.run(g, from, to, hasChanged);
+        smootheningCoarse.run(g, from, to, hasChanged);
+
+        for (Node n : g.getNodes()) {
+            n.getAttributes().setValue(PCA_PHI_FINE, smootheningFine.getValue(n));
+            n.getAttributes().setValue(PCA_PHI_COARSE, smootheningCoarse.getValue(n));
+        }
     }
 
     @Override
     public void setup(CurrentConfig cc) {
-        smootheningFine.setup(cc);
-        smootheningCoarse.setup(cc);
+        SmootheningDataProvider sdp = new SmootheningDataProvider() {
+
+            @Override
+            public double getValue(Node n) {
+                return (double) n.getAttributes().getValue(PCA_VELOCITY_VECTOR);
+            }
+        };
+
+        phiFine = cc.getFloatValue(CONFIG_PARAM_SMOOTHENING_PHI_FINE);
+        phiCoarse = cc.getFloatValue(CONFIG_PARAM_SMOOTHENING_PHI_COARSE);
+        noRoundsFine = cc.getIntegerValue(CONFIG_PARAM_SMOOTHENING_NO_ROUNDS_FINE);
+        noRoundsCoarse = cc.getIntegerValue(CONFIG_PARAM_SMOOTHENING_NO_ROUNDS_COARSE);
+        avgMethod = cc.getStringValue(CONFIG_PARAM_SMOOTHENING_AVG_WEIGHTS);
+
+        smootheningFine = new SmootheningScalarStage(phiFine, noRoundsFine, avgMethod, sdp);
+        smootheningCoarse = new SmootheningScalarStage(phiCoarse, noRoundsCoarse, avgMethod, sdp);
     }
 
     @Override
     public void tearDown() {
-        smootheningCoarse.tearDown();
-        smootheningFine.tearDown();
     }
 
     private void runPCA(Graph g) {
@@ -80,14 +94,16 @@ public class Dop_PCA extends PipelineStage {
         Matrix R = PCA.run(X, 1);
 
         for (int i = 0; i < nodes.length; i++) {
-            Node n = nodes[i];
-            n.getAttributes().setValue(PCA_VELOCITY_VECTOR, R.getEntry(i, 0));
+            nodes[i].getAttributes().setValue(PCA_VELOCITY_VECTOR, R.getEntry(i, 0));
         }
     }
 
     @Override
     public void printParams(PrintWriter pw) {
-        smootheningCoarse.printParams(pw);
-        smootheningFine.printParams(pw);
+        pw.println(CONFIG_PARAM_SMOOTHENING_PHI_FINE + ": " + phiFine);
+        pw.println(CONFIG_PARAM_SMOOTHENING_PHI_COARSE + ": " + phiCoarse);
+        pw.println(CONFIG_PARAM_SMOOTHENING_NO_ROUNDS_FINE + ": " + noRoundsFine);
+        pw.println(CONFIG_PARAM_SMOOTHENING_NO_ROUNDS_COARSE + ": " + noRoundsCoarse);
+        pw.println(CONFIG_PARAM_SMOOTHENING_AVG_WEIGHTS + ": " + avgMethod);
     }
 }

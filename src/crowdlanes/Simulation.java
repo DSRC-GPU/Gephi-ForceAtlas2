@@ -1,7 +1,6 @@
 package crowdlanes;
 
 import crowdlanes.config.ConfigParam;
-import static crowdlanes.config.ConfigParamNames.*;
 import crowdlanes.config.CurrentConfig;
 import crowdlanes.config.ResultsDir;
 import crowdlanes.graphReader.DynamicGraphIterator;
@@ -9,7 +8,6 @@ import crowdlanes.stages.*;
 import crowdlanes.stages.GraphPrinterStage;
 import crowdlanes.stages.dop.Dop;
 import crowdlanes.stages.embedding.MovementStage;
-import crowdlanes.stages.smoothening.SmootheningScalarStage;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -78,7 +76,6 @@ public class Simulation {
 
             System.err.println("");
             count++;
-            //if (count == 5) { break;}
         }
 
         System.err.println("hasChanged: " + count);

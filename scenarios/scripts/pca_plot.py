@@ -19,7 +19,7 @@ class DataFeederPCA(DataFeeder):
         colors = ('b', 'r', 'g', 'c', 'm', 'y', 'k')
         x = [n.get(self.field) for n in time_interval.nodes]
         y = rand_y[0:len(x)]
-        c = [colors[n.get_attr(Fields.GROUP)] for n in time_interval.nodes]
+        c = [colors[n.get(Fields.GROUP)] for n in time_interval.nodes]
         return x, y, c
 
 def main(argv=None):

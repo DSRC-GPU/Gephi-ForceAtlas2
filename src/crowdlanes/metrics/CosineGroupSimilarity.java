@@ -48,9 +48,15 @@ public class CosineGroupSimilarity {
         for (int i = 0; i < sameGroup.size(); i++) {
             Node n1 = sameGroup.get(i);
             Vector2D vals1 = getVector(n1, vectorColumnName);
+            if (vals1 == null) {
+                continue;
+            }
             for (int j = i + 1; j < sameGroup.size(); j++) {
                 Node n2 = sameGroup.get(j);
                 Vector2D vals2 = getVector(n2, vectorColumnName);
+                if (vals2 == null) {
+                    continue;
+                }
                 updateGroupSimilarity(n1, n2, vals1, vals2);
             }
         }
@@ -64,8 +70,14 @@ public class CosineGroupSimilarity {
 
         for (Node n1 : sameGroup) {
             Vector2D vals1 = getVector(n1, vectorColumnName);
+            if (vals1 == null) {
+                continue;
+            }
             for (Node n2 : fromOtherGroups) {
                 Vector2D vals2 = getVector(n2, vectorColumnName);
+                if (vals2 == null) {
+                    continue;
+                }
                 updateGroupSimilarity(n1, n2, vals1, vals2);
             }
         }

@@ -8,7 +8,6 @@ import java.io.PrintWriter;
 import java.util.HashMap;
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.gephi.data.attributes.api.AttributeType;
 import org.gephi.data.attributes.type.DoubleList;
 import org.gephi.graph.api.Graph;
@@ -19,16 +18,16 @@ public class VelocityProcessorStage extends PipelineStage {
     public final static String VELOCITY_VECTOR = "VelocityVector";
 
     private final HashMap<String, EvictingQueue<Vector2D>> velocityVectors;
-    private final SpeedSimilarityStage sss;
-    private final CosineSimilarityStage csc;
+    //private final SpeedSimilarityStage sss;
+    //private final CosineSimilarityStage csc;
     private int crrWindowSize;
     private Integer windowSize;
 
     public VelocityProcessorStage() {
         super();
         velocityVectors = new HashMap<>();
-        sss = new SpeedSimilarityStage("speed_sim", VELOCITY_VECTOR);
-        csc = new CosineSimilarityStage("cosine_sim", VELOCITY_VECTOR);
+        //sss = new SpeedSimilarityStage("speed_sim", VELOCITY_VECTOR);
+        //csc = new CosineSimilarityStage("cosine_sim", VELOCITY_VECTOR);
         addNodeColumn(VELOCITY_VECTOR, AttributeType.LIST_DOUBLE);
     }
 
@@ -62,9 +61,7 @@ public class VelocityProcessorStage extends PipelineStage {
             prev = crr;
         }
         
-
         n.getAttributes().setValue(VELOCITY_VECTOR, new DoubleList(new Double[]{dsX.getMean(), dsY.getMean()}));
-
     }
 
     private void updateVelocityVector(Node n) {
@@ -89,8 +86,8 @@ public class VelocityProcessorStage extends PipelineStage {
             return;
         }
 
-        sss.run(from, to, hasChanged);
-        csc.run(from, to, hasChanged);
+        //sss.run(from, to, hasChanged);
+        //csc.run(from, to, hasChanged);
     }
 
     public static Vector2D getVelocityVector(Node n) {
@@ -99,15 +96,15 @@ public class VelocityProcessorStage extends PipelineStage {
 
     @Override
     public void setup(CurrentConfig cc) {
-        sss.setup(cc);
-        csc.setup(cc);
+        //sss.setup(cc);
+        //csc.setup(cc);
 
         this.windowSize = cc.getIntegerValue(CONFIG_PARAM_VELOCITY_VEC_WINDOW_SIZE);
         if (windowSize < 0) {
             throw new IllegalArgumentException("Window size cannot be negative");
         }
 
-        for (Node n : graphModel.getGraphVisible().getNodes()) {
+        for (Node n : graphModel.getGraph().getNodes()) {
             String id = n.getNodeData().getId();
             EvictingQueue<Vector2D> q = EvictingQueue.create(windowSize);
             velocityVectors.put(id, q);
@@ -117,8 +114,8 @@ public class VelocityProcessorStage extends PipelineStage {
     @Override
     public void tearDown() {
         velocityVectors.clear();
-        sss.tearDown();
-        csc.tearDown();
+        //sss.tearDown();
+        //csc.tearDown();
     }
 
     @Override

@@ -37,23 +37,23 @@ class DataFeederDist(DataFeeder):
         if len(self.rolling_window) == window_size:
             self.rolling_window.pop()
 
-        n = time_interval.get_node(70)
+        n = time_interval.get_node(80)
         vec = n.vectors[self.field]
         self.rolling_window.insert(0, vec)
 
         x = [v.x for v in self.rolling_window]
         y = [v.y for v in self.rolling_window]
         c = ['b'] * len(x)
-        '''
         if len(x) > 2:
+            '''
             z5 = polyfit(x, y, 5)
             p5 = poly1d(z5)
             xx = linspace(-3000, 0, 100)
             plt.plot(xx, p5(xx),'-b')
+            '''
             slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
             line = slope * np.array(x) + intercept
             plt.plot(x, line, 'r-')
-        '''
         return x, y, c
 
 

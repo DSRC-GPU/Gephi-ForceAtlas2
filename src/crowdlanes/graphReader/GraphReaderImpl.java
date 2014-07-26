@@ -52,18 +52,16 @@ public final class GraphReaderImpl implements GraphReader {
         }
 
         fileObject = FileUtil.toFileObject(file);
+        importGraphGexf();
 
-        if (fileObject.hasExt("gexf")) {
-            importGraphGexf();
-        } else {
-            importGraphTxt();
-        }
     }
 
+    @Override
     public FileObject getFile() {
         return fileObject;
     }
 
+    @Override
     public Graph getGraph(double from, double to) {
 
         try {
@@ -103,67 +101,5 @@ public final class GraphReaderImpl implements GraphReader {
         container = importController.importFile(FileUtil.toFile(fileObject));
         importController.process(container);
         setup();
-    }
-
-    private enum ReadState {
-
-        READ_TICK, READ_NODES, READ_EDGES
-    };
-
-    private void importGraphTxt() throws FileNotFoundException, IOException {
-
-        Container container = Lookup.getDefault().lookup(ContainerFactory.class).newContainer();
-        ContainerLoader loader = container.getLoader();
-        ReadState state = ReadState.READ_TICK;
-
-        LineNumberReader lineReader = ImportUtils.getTextReader(fileObject);
-        List<String> lines = new ArrayList<>();
-        for (; lineReader.ready();) {
-            String line = lineReader.readLine();
-            if (line != null && !line.isEmpty()) {
-                lines.add(line.trim());
-            }
-        }
-
-        int i = 0;
-        int tick;
-        while (true) {
-            switch (state) {
-
-                case READ_TICK:
-                    tick = Integer.parseInt(lines.get(i++));
-                    state = ReadState.READ_NODES;
-                    break;
-                case READ_NODES:
-                    String[] parts = lines.get(i++).split(":");
-                    if (!parts[0].equals("NumNodes") || parts.length != 2) {
-                        throw new IllegalArgumentException("Mallformed input file");
-                    }
-
-                    int numNodes = Integer.parseInt(parts[1]);
-                    for (int j = 0; j < numNodes; j++) {
-                        String[] nodeParts = lines.get(i + j).split("\\s+");
-                        if (nodeParts.length != 4) {
-                            throw new IllegalArgumentException("Mallformed input file");
-                        }
-
-                        int id = Integer.parseInt(nodeParts[0]);
-                        int group = Integer.parseInt(nodeParts[1]);
-                        float x = Float.parseFloat(nodeParts[2]);
-                        float y = Float.parseFloat(nodeParts[3]);
-
-                    }
-            }
-        }
-    }
-
-    private void addNode(ContainerLoader loader, String id) {
-        if (!loader.nodeExists(id)) {
-            NodeDraft node = loader.factory().newNodeDraft();
-            node.setId(id);
-            node.setLabel(id);
-            loader.addNode(node);
-        }
-
     }
 }

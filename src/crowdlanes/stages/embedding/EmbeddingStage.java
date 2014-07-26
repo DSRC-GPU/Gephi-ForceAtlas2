@@ -1,15 +1,15 @@
 package crowdlanes.stages.embedding;
 
 import static crowdlanes.config.ConfigParamNames.*;
-import crowdlanes.util.EdgeWeight;
 import crowdlanes.config.CurrentConfig;
+import crowdlanes.embeddings.ForceAtlas2;
 import crowdlanes.embeddings.MaximalMatchingCoarsening;
 import crowdlanes.embeddings.MultiLevelLayout;
 import crowdlanes.stages.PipelineStage;
+import crowdlanes.util.EdgeWeight;
 import java.io.PrintWriter;
 import org.gephi.layout.plugin.force.StepDisplacement;
 import org.gephi.layout.plugin.force.yifanHu.YifanHuLayout;
-import org.gephi.layout.plugin.forceAtlas2.ForceAtlas2;
 import org.gephi.layout.spi.Layout;
 
 public class EmbeddingStage extends PipelineStage {
@@ -33,8 +33,8 @@ public class EmbeddingStage extends PipelineStage {
     private void initializeEmbedding(Integer seed) {
 
         MultiLevelLayout multiLevelLayout = new MultiLevelLayout(null, new MaximalMatchingCoarsening(seed), seed);
-        multiLevelLayout.resetPropertiesValues();
         multiLevelLayout.setGraphModel(graphModel);
+        multiLevelLayout.resetPropertiesValues();
         multiLevelLayout.initAlgo();
 
         while (!multiLevelLayout.canAlgo()) {
@@ -81,7 +81,7 @@ public class EmbeddingStage extends PipelineStage {
     private void initForceAtlas2(ForceAtlas2 forceAltasLayout) {
         forceAltasLayout.setGraphModel(graphModel);
         forceAltasLayout.resetPropertiesValues();
-        forceAltasLayout.setAdjustSizes(false);
+        forceAltasLayout.setAdjustSizes(true);
         forceAltasLayout.setThreadsCount(1);
         if (!useEdgeWeights) {
             forceAltasLayout.setEdgeWeightInfluence(0.0);
@@ -114,6 +114,7 @@ public class EmbeddingStage extends PipelineStage {
             default:
                 throw new IllegalArgumentException("Unkown embedding type: " + embeddingType);
         }
+        
 
         initializeEmbedding(seed);
     }

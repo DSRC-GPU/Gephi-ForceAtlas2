@@ -15,6 +15,7 @@ import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 import org.gephi.data.attributes.api.AttributeColumn;
 import org.gephi.data.attributes.api.AttributeModel;
 import org.gephi.graph.api.Edge;
+import org.gephi.graph.api.Graph;
 import org.gephi.graph.api.Node;
 import org.gephi.statistics.plugin.ConnectedComponents;
 import org.openide.util.Exceptions;
@@ -53,12 +54,14 @@ public class GraphPrinterStage extends PipelineStage {
             Vector2D velocity = VelocityProcessorStage.getVelocityVector(n);
             writer_nodes.print("," + velocity.getX() + " " + velocity.getY());
 
-            Vector2D smoothFineVel = Dop.getFineVector(n);
-            writer_nodes.print("," + smoothFineVel.getX() + " " + smoothFineVel.getY());
+            /*
+             Vector2D smoothFineVel = Dop.getFineVector(n);
+             writer_nodes.print("," + smoothFineVel.getX() + " " + smoothFineVel.getY());
 
-            Vector2D smoothCoarseVel = Dop.getCoarseVector(n);
-            writer_nodes.print("," + smoothCoarseVel.getX() + " " + smoothCoarseVel.getY());
-
+             Vector2D smoothCoarseVel = Dop.getCoarseVector(n);
+             writer_nodes.print("," + smoothCoarseVel.getX() + " " + smoothCoarseVel.getY());
+             */
+            
             double pcaFine = Dop.getFinePCA(n);
             double pcaCoarse = Dop.getCoarsePCA(n);
             writer_nodes.print("," + pcaFine + "," + pcaCoarse);
@@ -79,7 +82,12 @@ public class GraphPrinterStage extends PipelineStage {
             return;
         }
 
-        writer_nodes.println("from " + from + " to " + to);
+        Graph g = graphModel.getGraphVisible();
+        Double successRate = (Double) g.getAttributes().getValue(EdgeCutingAndCCDetectionStage.COMMUNITY_DETECTION);
+        if (successRate == null)
+            successRate = Double.NaN;
+        
+        writer_nodes.println("from " + from + " to " + to + " " + successRate);
         printNodes();
 
         writer_edges.println("from " + from + " to " + to);
@@ -88,6 +96,7 @@ public class GraphPrinterStage extends PipelineStage {
 
     @Override
     public void setup(CurrentConfig cc) {
+        step = 0;
         try {
             File resultsDir = ResultsDir.getCurrentResultPath();
             writer_nodes = new PrintWriter(new File(resultsDir, "nodes.txt"), "UTF-8");
@@ -100,7 +109,9 @@ public class GraphPrinterStage extends PipelineStage {
             Exceptions.printStackTrace(ex);
         }
 
-        writer_nodes.println("ID,GROUP,CC,EMBEDDING_POS,VELOCITY_VECTOR,FINE_SMOOTH_VEL_VECTOR,COARSE_SMOOTH_VEL_VECTOR,FINE_PCA,COARSE_PCA");
+        writer_nodes.println("ID,GROUP,CC,EMBEDDING_POS,VELOCITY_VECTOR,FINE_PCA,COARSE_PCA");
+        //writer_nodes.println("ID,GROUP,CC,EMBEDDING_POS,VELOCITY_VECTOR,FINE_SMOOTH_VEL_VECTOR,COARSE_SMOOTH_VEL_VECTOR,FINE_PCA,COARSE_PCA");
+        
     }
 
     @Override

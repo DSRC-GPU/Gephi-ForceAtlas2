@@ -47,7 +47,7 @@ public final class GraphUtil {
     }
 
     public static Set<Integer> getGroups() {
-        Set<Integer> groups = new HashSet<Integer>();
+        Set<Integer> groups = new HashSet<>();
         GraphModel graphModel = Lookup.getDefault().lookup(GraphController.class).getModel();
         Graph graph = graphModel.getGraphVisible();
 
@@ -60,7 +60,7 @@ public final class GraphUtil {
     }
 
     public static List<Node> getNodesInGroup(int group) {
-        List<Node> nodes = new ArrayList<Node>();
+        List<Node> nodes = new ArrayList<>();
         GraphModel graphModel = Lookup.getDefault().lookup(GraphController.class).getModel();
         Graph graph = graphModel.getGraphVisible();
 
@@ -75,7 +75,7 @@ public final class GraphUtil {
     }
 
     public static List<Node> getNodesNotInGroup(int group) {
-        List<Node> nodes = new ArrayList<Node>();
+        List<Node> nodes = new ArrayList<>();
         GraphModel graphModel = Lookup.getDefault().lookup(GraphController.class).getModel();
         Graph graph = graphModel.getGraphVisible();
 
@@ -89,10 +89,31 @@ public final class GraphUtil {
         return nodes;
     }
 
+    public static List<Node> getNodesVectorNotNull(String columnName) {
+        List<Node> nodes = new ArrayList<>();
+        GraphModel graphModel = Lookup.getDefault().lookup(GraphController.class).getModel();
+        Graph graph = graphModel.getGraphVisible();
+        for (Node n : graph.getNodes()) {
+            if (null == n.getAttributes().getValue(columnName)) {
+                continue;
+            }
+            nodes.add(n);
+        }
+
+        return nodes;
+    }
+
     public static Vector2D getVector(Node n, String columnName) {
         DoubleList vals = (DoubleList) n.getAttributes().getValue(columnName);
-        assert vals != null : "vals is null node: " + n;
-        assert vals.size() == 2 : "vals size < 2: got: " + vals.size() + " node: " + n;
+        if (vals == null) {
+            return null;
+        }
+        /*
+         if (vals == null)
+         throw new IllegalAccessError("attribute " + columnName + " is null for node: " + n);
+         */
+
+        //assert vals.size() == 2 : "vals size < 2: got: " + vals.size() + " node: " + n;
         return new Vector2D(vals.getItem(0), vals.getItem(1));
     }
 
@@ -115,21 +136,13 @@ public final class GraphUtil {
         Graph g = Lookup.getDefault().lookup(GraphController.class).getModel().getGraphVisible();
         Node n = g.getNodes().toArray()[0];
         Object val = n.getAttributes().getValue(columnName);
-        if (val == null) {
-            return true;
-        }
-
-        return false;
+        return val == null;
     }
-    
+
     public static boolean isEdgeColumnNull(String columnName) {
         Graph g = Lookup.getDefault().lookup(GraphController.class).getModel().getGraphVisible();
         Edge e = g.getEdges().toArray()[0];
         Object val = e.getAttributes().getValue(columnName);
-        if (val == null) {
-            return true;
-        }
-
-        return false;
+        return val == null;
     }
 }

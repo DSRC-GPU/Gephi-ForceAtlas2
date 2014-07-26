@@ -2,7 +2,6 @@ package crowdlanes.graphReader;
 
 import crowdlanes.config.CurrentConfig;
 import static crowdlanes.config.ConfigParamNames.*;
-import crowdlanes.graphReader.GraphReader;
 import java.util.Iterator;
 import org.gephi.dynamic.api.DynamicController;
 import org.gephi.dynamic.api.DynamicModel;
@@ -102,7 +101,7 @@ public class DynamicGraphIterator implements Iterable<Graph> {
 
     private class GraphIterator implements Iterator<Graph> {
 
-        private GraphReader graphReader;
+        private final GraphReader graphReader;
         private boolean someAction;
         private double from;
         private double to;

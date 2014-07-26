@@ -3,7 +3,9 @@
 import sys
 import math
 
+from pylab import *
 import matplotlib.animation as animation
+from matplotlib.collections import LineCollection
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -23,7 +25,7 @@ class DataFeeder(object):
             self.frame = self.pg.get_time_interval(time_frame)
 
         if not self.frame:
-            raise Exception("Unknown time frame " + time_frame)
+            raise Exception("Unknown time frame " + str(time_frame))
         self.idx = self.time_intervals.index(self.frame)
 
     def get_limits(self):
@@ -49,8 +51,19 @@ class DataFeeder(object):
         if self.idx > 1:
             self.idx -= 2
 
+    def get_current_edges(self):
+        if not self.pg.read_edges:
+            return []
+        lines = []
+        for e in self.frame.edges:
+            line = []
+            src, dst = self.frame.get_nodes(e)
+            line.append(src.vectors[self.field].get())
+            line.append(dst.vectors[self.field].get())
+            lines.append(line)
+        return lines
+
     def __iter__(self):
-        print "AA"
         while self.idx < len(self.time_intervals):
             self.frame = self.time_intervals[self.idx]
             self.idx += 1
@@ -62,6 +75,9 @@ class ScatterPlot(object):
         self.feeder = feeder
         self.stream = iter(self.feeder)
 
+    def get_frames_len(self):
+        return len(self.feeder.time_intervals) - 1
+
     def get_frame(self):
         return self.feeder.frame
 
@@ -70,8 +86,19 @@ class ScatterPlot(object):
 
     def setup_plot(self):
         x, y, c = next(self.stream)
-        self.scat = plt.scatter(x, y, c = c, marker = self.marker)
+        ax = plt.gca()
+        self.scat = ax.scatter(x, y, c = c, marker = self.marker, s = 25)
         return self.scat
+
+    def setup_plot_edges(self):
+        lines = self.feeder.get_current_edges()
+        ax = plt.gca()
+        self.lines = LineCollection(lines, linewidths=0.1)
+        ax.add_collection(self.lines)
+
+    def update_edges(self):
+        lines = self.feeder.get_current_edges()
+        self.lines.set_segments(lines)
 
     def prev_state(self):
         self.feeder.prev()
@@ -85,14 +112,19 @@ class ScatterPlot(object):
 
 class AnimatedScatter(object):
 
-    def __init__(self, scatter_plots):
-        self.pause = True
+    def __init__(self, scatter_plots, framePause = True):
+        self.pause = framePause
+        self.stop = False
+        self.framePause = framePause
         self.fig, self.ax = plt.subplots()
         self.scatter_plots = scatter_plots
         self.fig.canvas.mpl_connect('button_press_event', self.on_click)
         self.set_limits()
-        self.ani = animation.FuncAnimation(self.fig, self.update_plot, interval=5,
+        self.ani = animation.FuncAnimation(self.fig, self.update_plot, interval=1000, frames = self.scatter_plots[0].get_frames_len(),
                                                init_func=self.setup_plot, blit=False)
+
+    def get_animation(self):
+        return self.ani
 
     def set_limits(self):
         x = []
@@ -113,13 +145,17 @@ class AnimatedScatter(object):
 
     def setup_plot(self):
         self.plots = [s.setup_plot() for s in self.scatter_plots]
+        for s in self.scatter_plots:
+            s.setup_plot_edges()
         return self.plots
 
     def update_plot(self, i):
         self.ax.set_title("Time Frame: %d" % self.scatter_plots[0].get_frame().start)
         if not self.pause:
             self.plots = [s.update_plot() for s in self.scatter_plots]
-            self.pause = True
+            for s in self.scatter_plots:
+                s.update_edges()
+            self.pause = self.framePause
         return self.plots
 
     def show(self):

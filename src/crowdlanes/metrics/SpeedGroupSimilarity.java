@@ -3,11 +3,9 @@ package crowdlanes.metrics;
 import crowdlanes.util.GraphUtil;
 import static crowdlanes.util.GraphUtil.getVector;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import org.gephi.data.attributes.type.DoubleList;
 import org.gephi.graph.api.Node;
 
 public class SpeedGroupSimilarity {
@@ -39,7 +37,6 @@ public class SpeedGroupSimilarity {
         speedSimStats.addValue(speedDif);
     }
 
-
     public double getInnerGroupSimilarity(int group) {
         speedSimStats.clear();
         List<Node> sameGroup = GraphUtil.getNodesInGroup(group);
@@ -47,9 +44,16 @@ public class SpeedGroupSimilarity {
         for (int i = 0; i < sameGroup.size(); i++) {
             Node n1 = sameGroup.get(i);
             Vector2D vals1 = getVector(n1, vectorColumnName);
+            if (vals1 == null) {
+                continue;
+            }
+
             for (int j = i + 1; j < sameGroup.size(); j++) {
                 Node n2 = sameGroup.get(j);
                 Vector2D vals2 = getVector(n2, vectorColumnName);
+                if (vals2 == null) {
+                    continue;
+                }
                 updateGroupSimilarity(vals1, vals2);
             }
         }
@@ -63,8 +67,14 @@ public class SpeedGroupSimilarity {
 
         for (Node n1 : sameGroup) {
             Vector2D vals1 = getVector(n1, vectorColumnName);
+            if (vals1 == null) {
+                continue;
+            }
             for (Node n2 : fromOtherGroups) {
                 Vector2D vals2 = getVector(n2, vectorColumnName);
+                if (vals2 == null) {
+                    continue;
+                }
                 updateGroupSimilarity(vals1, vals2);
             }
         }

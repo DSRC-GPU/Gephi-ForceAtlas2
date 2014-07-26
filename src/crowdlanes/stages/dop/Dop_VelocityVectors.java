@@ -20,18 +20,38 @@ import org.gephi.graph.api.Node;
 
 public class Dop_VelocityVectors extends PipelineStage {
 
-    public final static String SMOOTHENING_COORDS_FINE_X = "SMOOTHENING_COORDS_FINE_X";
-    public final static String SMOOTHENING_COORDS_FINE_Y = "SMOOTHENING_COORDS_FINE_Y";
-    public final static String SMOOTHENING_COORDS_COARSE_X = "SMOOTHENING_COORDS_COARSE_X";
-    public final static String SMOOTHENING_COORDS_COARSE_Y = "SMOOTHENING_COORDS_COARSE_Y";
-
-    private final SmootheningScalarStage xFine;
-    private final SmootheningScalarStage yFine;
-    private final SmootheningScalarStage xCoarse;
-    private final SmootheningScalarStage yCoarse;
+    private SmootheningScalarStage xFine;
+    private SmootheningScalarStage yFine;
+    private SmootheningScalarStage xCoarse;
+    private SmootheningScalarStage yCoarse;
+    private Float phiFine;
+    private Float phiCoarse;
+    private Integer noRoundsFine;
+    private Integer noRoundsCoarse;
+    private String avgMethod;
 
     public Dop_VelocityVectors() {
         super();
+        addNodeColumn(PCA_PHI_FINE, AttributeType.DOUBLE);
+        addNodeColumn(PCA_PHI_COARSE, AttributeType.DOUBLE);
+    }
+
+    @Override
+    public void run(double from, double to, boolean hasChanged) {
+        if (GraphUtil.isNodeColumnNull(VelocityProcessorStage.VELOCITY_VECTOR)) {
+            return;
+        }
+
+        Graph g = graphModel.getGraphVisible();
+        xFine.run(g, from, to, hasChanged);
+        yFine.run(g, from, to, hasChanged);
+        xCoarse.run(g, from, to, hasChanged);
+        yCoarse.run(g, from, to, hasChanged);
+        runPCA(g);
+    }
+
+    @Override
+    public void setup(CurrentConfig cc) {
         SmootheningDataProvider sdpX = new SmootheningDataProvider() {
 
             @Override
@@ -50,44 +70,22 @@ public class Dop_VelocityVectors extends PipelineStage {
             }
         };
 
-        addNodeColumn(PCA_PHI_FINE, AttributeType.DOUBLE);
-        addNodeColumn(PCA_PHI_COARSE, AttributeType.DOUBLE);
+        phiFine = cc.getFloatValue(CONFIG_PARAM_SMOOTHENING_PHI_FINE);
+        phiCoarse = cc.getFloatValue(CONFIG_PARAM_SMOOTHENING_PHI_COARSE);
+        noRoundsFine = cc.getIntegerValue(CONFIG_PARAM_SMOOTHENING_NO_ROUNDS_FINE);
+        noRoundsCoarse = cc.getIntegerValue(CONFIG_PARAM_SMOOTHENING_NO_ROUNDS_COARSE);
+        avgMethod = cc.getStringValue(CONFIG_PARAM_SMOOTHENING_AVG_WEIGHTS);
 
-        xFine = new SmootheningScalarStage(SMOOTHENING_COORDS_FINE_X, CONFIG_PARAM_SMOOTHENING_PHI_FINE, CONFIG_PARAM_SMOOTHENING_NO_ROUNDS_FINE, sdpX);
-        yFine = new SmootheningScalarStage(SMOOTHENING_COORDS_FINE_Y, CONFIG_PARAM_SMOOTHENING_PHI_FINE, CONFIG_PARAM_SMOOTHENING_NO_ROUNDS_FINE, sdpY);
+        xFine = new SmootheningScalarStage(phiFine, noRoundsFine, avgMethod, sdpX);
+        yFine = new SmootheningScalarStage(phiFine, noRoundsFine, avgMethod, sdpY);
 
-        xCoarse = new SmootheningScalarStage(SMOOTHENING_COORDS_COARSE_X, CONFIG_PARAM_SMOOTHENING_PHI_COARSE, CONFIG_PARAM_SMOOTHENING_NO_ROUNDS_COARSE, sdpX);
-        yCoarse = new SmootheningScalarStage(SMOOTHENING_COORDS_COARSE_Y, CONFIG_PARAM_SMOOTHENING_PHI_COARSE, CONFIG_PARAM_SMOOTHENING_NO_ROUNDS_COARSE, sdpY);
-    }
+        xCoarse = new SmootheningScalarStage(phiCoarse, noRoundsCoarse, avgMethod, sdpX);
+        yCoarse = new SmootheningScalarStage(phiCoarse, noRoundsCoarse, avgMethod, sdpY);
 
-    @Override
-    public void run(double from, double to, boolean hasChanged) {
-        if (GraphUtil.isNodeColumnNull(VelocityProcessorStage.VELOCITY_VECTOR)) {
-            return;
-        }
-
-        Graph g = graphModel.getGraphVisible();
-        xFine.run(from, to, hasChanged);
-        yFine.run(from, to, hasChanged);
-        xCoarse.run(from, to, hasChanged);
-        yCoarse.run(from, to, hasChanged);
-        runPCA(g);
-    }
-
-    @Override
-    public void setup(CurrentConfig cc) {
-        xFine.setup(cc);
-        yFine.setup(cc);
-        xCoarse.setup(cc);
-        yCoarse.setup(cc);
     }
 
     @Override
     public void tearDown() {
-        xFine.tearDown();
-        yFine.tearDown();
-        xCoarse.tearDown();
-        yCoarse.tearDown();
     }
 
     private void runPCA(Graph g) {
@@ -97,10 +95,10 @@ public class Dop_VelocityVectors extends PipelineStage {
         Node[] nodes = g.getNodes().toArray();
         for (int i = 0; i < nodes.length; i++) {
             Node n = nodes[i];
-            data[2 * i][0] = (double) n.getAttributes().getValue(SMOOTHENING_COORDS_FINE_X);
-            data[2 * i][1] = (double) n.getAttributes().getValue(SMOOTHENING_COORDS_FINE_Y);
-            data[2 * i + 1][0] = (double) n.getAttributes().getValue(SMOOTHENING_COORDS_COARSE_X);
-            data[2 * i + 1][1] = (double) n.getAttributes().getValue(SMOOTHENING_COORDS_COARSE_Y);
+            data[2 * i][0] = xFine.getValue(n);
+            data[2 * i][1] = yFine.getValue(n);
+            data[2 * i + 1][0] = xCoarse.getValue(n);
+            data[2 * i + 1][1] = yCoarse.getValue(n);
         }
 
         Matrix X = new DenseMatrix(data);
@@ -114,7 +112,10 @@ public class Dop_VelocityVectors extends PipelineStage {
 
     @Override
     public void printParams(PrintWriter pw) {
-        xFine.printParams(pw);
-        xCoarse.printParams(pw);
+        pw.println(CONFIG_PARAM_SMOOTHENING_PHI_FINE + ": " + phiFine);
+        pw.println(CONFIG_PARAM_SMOOTHENING_PHI_COARSE + ": " + phiCoarse);
+        pw.println(CONFIG_PARAM_SMOOTHENING_NO_ROUNDS_FINE + ": " + noRoundsFine);
+        pw.println(CONFIG_PARAM_SMOOTHENING_NO_ROUNDS_COARSE + ": " + noRoundsCoarse);
+        pw.println(CONFIG_PARAM_SMOOTHENING_AVG_WEIGHTS + ": " + avgMethod);
     }
 }

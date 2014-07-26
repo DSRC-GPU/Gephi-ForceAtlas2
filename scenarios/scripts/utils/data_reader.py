@@ -33,23 +33,34 @@ class Vector(object):
         self.x = x
         self.y = y
 
+    def get(self):
+        return self.x, self.y
+
     def __repr__(self):
         return "(%f %f)" % (self.x, self.y)
 
 class TimeInterval(object):
     def __init__(self, line):
         parts = line.split()
-        assert len(parts) == 4
+        assert len(parts) == 5
         assert parts[0] == "from"
         assert parts[2] == "to"
         start = float(parts[1])
         end = float(parts[3])
+        self.success = float(parts[4])
         self.start = start
         self.end = end
         self.nodes = []
         self.edges = []
 
+    def get_success_rate(self):
+        return self.success
+
     def get_nodes(self, edge):
+        src = self.nodes[edge.src]
+        dst = self.nodes[edge.dst]
+        assert src.get(Fields.ID) == edge.src
+        assert dst.get(Fields.ID) == edge.dst
         return self.nodes[edge.src], self.nodes[edge.dst]
 
     def get_edge(self, idx):
@@ -80,8 +91,8 @@ class Node(object):
 
         self.__read_vector(valdict, Fields.EMBEDDING_POS)
         self.__read_vector(valdict, Fields.VELOCITY_VECTOR)
-        self.__read_vector(valdict, Fields.FINE_SMOOTH_VEL_VECTOR)
-        self.__read_vector(valdict, Fields.COARSE_SMOOTH_VEL_VECTOR)
+        #self.__read_vector(valdict, Fields.FINE_SMOOTH_VEL_VECTOR)
+        #self.__read_vector(valdict, Fields.COARSE_SMOOTH_VEL_VECTOR)
 
     def get(self, name):
         return self.attr[name]
@@ -138,8 +149,8 @@ class ProximityGraph(object):
         if not os.path.isdir(dname):
             raise ValueError(dname + " directory does not exist")
         self.time_intervals_start = {}
-        self.edges = {}
         self.time_intervals = []
+        self.read_edges = read_edges
         self.__read_nodes_file(dname)
         if read_edges:
             self.__read_edges_file(dname)
@@ -180,7 +191,6 @@ class ProximityGraph(object):
                     src = int(parts[0])
                     dst = int(parts[1])
                     e = Edge(src, dst)
-                    self.edges[str(src) + str(dst)] = e
                     time_interval.add_edge(e)
 
     def __get_new_time_interval(self, line):

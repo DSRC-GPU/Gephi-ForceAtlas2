@@ -22,10 +22,13 @@ def main(argv=None):
     if len(argv) == 3:
         time_frame = int(argv[2])
 
-    p = ProximityGraph(argv[1], False)
+    p = ProximityGraph(argv[1], True)
     data_feeder = DataFeeder(p, Fields.EMBEDDING_POS, time_frame)
     embedding = ScatterPlot(data_feeder)
-    AnimatedScatter([embedding]).show()
+    an = AnimatedScatter([embedding])
+    #plt.axis('off')
+    an.show()
+    #an.get_animation().save('embedding_two_lanes_9.mov', fps = 5, extra_args=['-vcodec', 'libx264'], dpi = 170)
 
 if __name__ == "__main__":
     main()
