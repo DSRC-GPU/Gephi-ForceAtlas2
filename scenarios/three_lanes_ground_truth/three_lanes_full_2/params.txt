@@ -1,0 +1,7 @@
+UseGroundTruth: true
+RollingWindowSize: 25
+PhiFine: 0.01
+PhiCoarse: 0.6
+NoRoundsFine: 100
+NoRoundsCoarse: 100
+WeightsType: normal

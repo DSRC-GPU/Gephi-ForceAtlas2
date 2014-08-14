@@ -150,7 +150,7 @@ class AnimatedScatter(object):
         return self.plots
 
     def update_plot(self, i):
-        self.ax.set_title("Time Frame: %d" % self.scatter_plots[0].get_frame().start)
+        #self.ax.set_title("Time Frame: %d" % self.scatter_plots[0].get_frame().start)
         if not self.pause:
             self.plots = [s.update_plot() for s in self.scatter_plots]
             for s in self.scatter_plots:

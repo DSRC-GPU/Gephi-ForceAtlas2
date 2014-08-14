@@ -33,7 +33,7 @@ def get_graph_at_time(G, time_stamp):
     return newG
 
 def get_graph_snapshot(G, time_step = 1):
-    crr_time = 1
+    crr_time = 0
     while True:
         newG = get_graph_at_time(G, crr_time)
         if not newG:
@@ -51,7 +51,7 @@ def plot(G):
     def init():
         global nodesPlot, edgesPlot
         newG, pos = next(it)
-        nodesPlot = nx.draw_networkx_nodes(newG, pos)
+        nodesPlot = nx.draw_networkx_nodes(newG, pos, node_size = 20)
         edgesPlot = nx.draw_networkx_edges(newG, pos)
         return nodesPlot, edgesPlot
 
@@ -64,7 +64,9 @@ def plot(G):
         return nodesPlot, edgesPlot
 
     fig = plt.figure()
-    anim = animation.FuncAnimation(fig, animate, init_func = init, frames=20, interval=20, blit=False)
+    plt.xlim(0, 800)
+    plt.ylim(0, 800)
+    anim = animation.FuncAnimation(fig, animate, init_func = init, frames=50, interval=10, blit=False)
     plt.show()
 
 def main(argv=None):
