@@ -69,6 +69,7 @@ public class Dop extends PipelineStage {
         System.err.println("\tTotal incorrect cuts: " + getIncorrectCuts());
         System.err.println("\tTotal correct cuts: " + getCorrectCuts());
         System.err.println("\tTotal missed cuts: " + getMissedCuts());
+        removeEdgeColumn(EDGE_CUT);
     }
 
     private double getDop(Node n) {

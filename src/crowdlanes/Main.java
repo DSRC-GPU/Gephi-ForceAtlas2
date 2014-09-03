@@ -16,9 +16,8 @@ public class Main {
             System.exit(-1);
         }
 
-        Lookup.getDefault().lookup(GraphReader.class).importFile(args[0]);
-
         ParameterSweeper ps = Lookup.getDefault().lookup(ParameterSweeper.class);
+        ps.setGexfFile(args[0]);
         ps.readConfig(args[1]);
 
         ps.registerParam(GENERAL_SECTION, Boolean.class, CONFIG_PARAM_USE_GROUNDTRUTH);

@@ -69,6 +69,8 @@ public class Dop_PCA extends PipelineStage {
         noRoundsFine = cc.getIntegerValue(CONFIG_PARAM_SMOOTHENING_NO_ROUNDS_FINE);
         noRoundsCoarse = cc.getIntegerValue(CONFIG_PARAM_SMOOTHENING_NO_ROUNDS_COARSE);
         avgMethod = cc.getStringValue(CONFIG_PARAM_SMOOTHENING_AVG_WEIGHTS);
+        noRoundsFine = (int) (2 / phiFine);
+        noRoundsCoarse = (int) (2 / phiCoarse);
 
         smootheningFine = new SmootheningScalarStage(phiFine, noRoundsFine, avgMethod, sdp);
         smootheningCoarse = new SmootheningScalarStage(phiCoarse, noRoundsCoarse, avgMethod, sdp);
@@ -76,6 +78,9 @@ public class Dop_PCA extends PipelineStage {
 
     @Override
     public void tearDown() {
+        removeNodeColumn(PCA_PHI_FINE);
+        removeNodeColumn(PCA_PHI_COARSE);
+        removeNodeColumn(PCA_VELOCITY_VECTOR);
     }
 
     private void runPCA(Graph g) {

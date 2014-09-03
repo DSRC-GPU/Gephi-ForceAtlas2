@@ -87,13 +87,14 @@ class ScatterPlot(object):
     def setup_plot(self):
         x, y, c = next(self.stream)
         ax = plt.gca()
-        self.scat = ax.scatter(x, y, c = c, marker = self.marker, s = 25)
+        self.scat = ax.scatter(x, y, c = c, marker = self.marker, s = 35, zorder = 10, edgecolors='none')
         return self.scat
 
     def setup_plot_edges(self):
         lines = self.feeder.get_current_edges()
         ax = plt.gca()
-        self.lines = LineCollection(lines, linewidths=0.1)
+        self.lines = LineCollection(lines, linewidths=0.1, color='k')
+        self.lines.set_alpha(0.2)
         ax.add_collection(self.lines)
 
     def update_edges(self):
@@ -144,17 +145,17 @@ class AnimatedScatter(object):
         self.pause = False
 
     def setup_plot(self):
-        self.plots = [s.setup_plot() for s in self.scatter_plots]
         for s in self.scatter_plots:
             s.setup_plot_edges()
+        self.plots = [s.setup_plot() for s in self.scatter_plots]
         return self.plots
 
     def update_plot(self, i):
         #self.ax.set_title("Time Frame: %d" % self.scatter_plots[0].get_frame().start)
         if not self.pause:
-            self.plots = [s.update_plot() for s in self.scatter_plots]
             for s in self.scatter_plots:
                 s.update_edges()
+            self.plots = [s.update_plot() for s in self.scatter_plots]
             self.pause = self.framePause
         return self.plots
 

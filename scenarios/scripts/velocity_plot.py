@@ -18,43 +18,41 @@ global window_size
 class DataFeederDist(DataFeeder):
     def __init__(self, pg, time_frame):
         super(DataFeederDist, self).__init__(pg, Fields.EMBEDDING_POS, time_frame)
-        self.rolling_window = []
+        self.rolling_window1 = []
+        self.rolling_window2 = []
 
     def get_limits(self):
-        maxX = maxY = float("-inf")
-        minX = minY = float("inf")
-        for t in self.time_intervals:
-            vecs = [n.vectors[self.field] for n in t.nodes]
-            x = [v.x for v in vecs]
-            y = [v.y for v in vecs]
-            maxX = max(max(x), maxX)
-            maxY = max(max(y), maxY)
-            minX = min(min(x), minX)
-            minY = min(min(y), minY)
-        return [minX, maxX], [minY, maxY]
+        return [-1000, 0], [0, 1000]
 
     def get_data(self, time_interval):
-        if len(self.rolling_window) == window_size:
-            self.rolling_window.pop()
+        if len(self.rolling_window1) == window_size:
+            self.rolling_window1.pop()
+            self.rolling_window2.pop()
 
-        n = time_interval.get_node(80)
-        vec = n.vectors[self.field]
-        self.rolling_window.insert(0, vec)
+        n1 = time_interval.get_node(0)
+        self.rolling_window1.insert(0, n1.vectors[self.field])
 
-        x = [v.x for v in self.rolling_window]
-        y = [v.y for v in self.rolling_window]
-        c = ['b'] * len(x)
+        n2 = time_interval.get_node(1)
+        self.rolling_window2.insert(0, n2.vectors[self.field])
+
+        x1 = [v.x for v in self.rolling_window1]
+        y1 = [v.y for v in self.rolling_window1]
+        c1 = ['b'] * len(x1)
+
+        x2 = [v.x for v in self.rolling_window2]
+        y2 = [v.y for v in self.rolling_window2]
+        c2 = ['r'] * len(x2)
+        '''
         if len(x) > 2:
-            '''
             z5 = polyfit(x, y, 5)
             p5 = poly1d(z5)
             xx = linspace(-3000, 0, 100)
             plt.plot(xx, p5(xx),'-b')
-            '''
             slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
             line = slope * np.array(x) + intercept
             plt.plot(x, line, 'r-')
-        return x, y, c
+        '''
+        return x1, y1 , c1
 
 
 def compute_distances(pg):
@@ -93,6 +91,7 @@ def main(argv=None):
     global window_size
     window_size = int(Params(argv[1]).get(ParamNames.RollingWindowSize))
 
+    plt.axis('off')
     AnimatedScatter([embedding]).show()
 
 if __name__ == "__main__":

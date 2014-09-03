@@ -71,7 +71,8 @@ def main(argv=None):
     plot = VectorFieldPlot(vel)
     an = AnimatedScatter([plot])
     plt.axis('off')
-    an.show()
+    plt.savefig('1.pdf', format='PDF')
+    #an.show()
 
 if __name__ == "__main__":
     main()

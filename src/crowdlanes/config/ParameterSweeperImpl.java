@@ -16,14 +16,14 @@ import org.openide.util.lookup.ServiceProvider;
 public class ParameterSweeperImpl implements ParameterSweeper {
 
     private final List<ConfigParam> params;
-    private final Simulation sim;
+    private Simulation sim;
     private Wini configFile;
+    private String gexfFile;
 
     private PrintWriter paramWriter;
 
     public ParameterSweeperImpl() throws IOException, IllegalAccessException {
         params = new ArrayList<>();
-        this.sim = new Simulation();
     }
 
     @Override
@@ -37,6 +37,13 @@ public class ParameterSweeperImpl implements ParameterSweeper {
 
     @Override
     public void run() {
+        try {
+            this.sim = new Simulation(gexfFile);
+        } catch (IllegalAccessException ex) {
+            Exceptions.printStackTrace(ex);
+        } catch (IOException ex) {
+            Exceptions.printStackTrace(ex);
+        }
         for (List<Value> l : cartesianProduct(params)) {
             sim.run(l);
             ResultsDir.updateResultPath();
@@ -48,5 +55,10 @@ public class ParameterSweeperImpl implements ParameterSweeper {
         ConfigParam pm = new ConfigParam(configFile, section, clazz, optionName);
         params.add(pm);
         pm.read();
+    }
+
+    @Override
+    public void setGexfFile(String gexfFile) {
+        this.gexfFile = gexfFile;
     }
 }

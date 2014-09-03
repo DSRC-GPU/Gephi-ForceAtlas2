@@ -3,10 +3,7 @@ package crowdlanes.graphReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.LineNumberReader;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
 import org.gephi.data.attributes.type.TimeInterval;
 import org.gephi.dynamic.DynamicModelImpl;
 import org.gephi.dynamic.api.DynamicController;
@@ -21,11 +18,7 @@ import org.gephi.graph.api.GraphController;
 import org.gephi.graph.api.GraphModel;
 import org.gephi.graph.api.GraphView;
 import org.gephi.io.importer.api.Container;
-import org.gephi.io.importer.api.ContainerFactory;
-import org.gephi.io.importer.api.ContainerLoader;
 import org.gephi.io.importer.api.ImportController;
-import org.gephi.io.importer.api.ImportUtils;
-import org.gephi.io.importer.api.NodeDraft;
 import org.gephi.project.api.ProjectController;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
@@ -92,6 +85,8 @@ public final class GraphReaderImpl implements GraphReader {
     private void importGraphGexf() throws FileNotFoundException {
         //Init a project - and therefore a workspace
         ProjectController pc = Lookup.getDefault().lookup(ProjectController.class);
+        pc.closeCurrentProject();
+        pc.closeCurrentWorkspace();
         pc.newProject();
 
         //Import first file

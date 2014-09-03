@@ -2,36 +2,37 @@ package crowdlanes.util;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import la.matrix.DenseMatrix;
 import la.matrix.Matrix;
 
 public class CompareCommunities {
-    
+
     public static void reindex_membership(List<Integer> v) {
-        List<Integer> oldSorted = new ArrayList<>(v);
-        List<Integer> newToOldReal = new ArrayList<>();
-        Collections.sort(oldSorted);
-        
-        int lastId = v.get(0) - 1;
-        for (Integer thisId : oldSorted) {
-            if (lastId != thisId) {
-                newToOldReal.add(thisId);
-                lastId = thisId;
-            }
+
+        Set<Integer> newToOldReal = new HashSet<>();
+        for (Integer thisId : v) {
+            newToOldReal.add(thisId);
         }
         
+        List<Integer> oldSorted = new ArrayList<>(newToOldReal);
+        Collections.sort(oldSorted);
         for (int i = 0; i < v.size(); i++) {
             int thisId = v.get(i);
-            int pos = newToOldReal.indexOf(thisId);
-            v.set(i, pos);         
+            int pos = oldSorted.indexOf(thisId);
+            v.set(i, pos);
         }
     }
 
     public static double nmi(List<Integer> v1, List<Integer> v2) {
-        
+
         reindex_membership(v1);
         reindex_membership(v2);
+
+        //System.err.println("v1: " + v1);
+        //System.err.println("v2: " + v2);
 
         int k1 = Collections.max(v1) + 1;
         int k2 = Collections.max(v2) + 1;

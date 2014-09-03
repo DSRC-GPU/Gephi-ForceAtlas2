@@ -31,17 +31,20 @@ def surface_plot(x, y, z):
 
 def image_plot(X, Y, C, x, y, z, edges):
     ax = plt.gca()
-    c = map(lambda x: 'b' if x == 'r' else 'r', C)
+    c = map(lambda x: 'g' if x == 'r' else 'r', C)
     lines = LineCollection(edges, linewidths=0.2, colors= 'k')
+    lines.set_alpha(0.5)
     csf = ax.contourf(x, y, z, 50, cmap=plt.cm.jet)
     CS = plt.contour(x,y,z,50,linewidths=0.0,colors='k')
+    CS.set_alpha(0)
     zc = CS.collections[22]
-    plt.setp(zc, linewidth=2)
-    ax.scatter(X, Y, marker = 'o', c = c, s=50)
+    plt.setp(zc, linewidth=2, alpha=1)
+    ax.scatter(X, Y, marker = 'o', c = c, s=20, edgecolors='none', zorder = 10)
     ax.add_collection(lines)
     cbar = plt.colorbar(csf)
     plt.axis('off')
-    plt.show()
+    plt.savefig('1.pdf', format='PDF')
+    #plt.show()
 
 
 def get_pca_fine(p, time_frame):

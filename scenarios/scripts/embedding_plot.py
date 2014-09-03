@@ -26,8 +26,9 @@ def main(argv=None):
     data_feeder = DataFeeder(p, Fields.EMBEDDING_POS, time_frame)
     embedding = ScatterPlot(data_feeder)
     an = AnimatedScatter([embedding])
-    #plt.axis('off')
+    plt.axis('off')
     an.show()
+    #plt.savefig('1.pdf', format='PDF')
     #an.get_animation().save('embedding_two_lanes_9.mov', fps = 5, extra_args=['-vcodec', 'libx264'], dpi = 170)
 
 if __name__ == "__main__":

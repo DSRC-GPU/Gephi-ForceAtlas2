@@ -30,6 +30,16 @@ public abstract class PipelineStage {
         return nodesTable.getColumn(name);
     }
 
+    protected boolean removeNodeColumn(String name) {
+        AttributeTable nodesTable = attributeController.getModel().getNodeTable();
+        if (nodesTable.hasColumn(name) != false) {
+            nodesTable.removeColumn(nodesTable.getColumn(name));
+            return true;
+        }
+
+        return false;
+    }
+
     protected AttributeColumn addEdgeColumn(String name, AttributeType type) {
         AttributeTable edgesTable = attributeController.getModel().getEdgeTable();
         if (edgesTable.hasColumn(name) == false) {
@@ -39,6 +49,16 @@ public abstract class PipelineStage {
         return edgesTable.getColumn(name);
     }
 
+    protected boolean removeEdgeColumn(String name) {
+        AttributeTable edgesTable = attributeController.getModel().getEdgeTable();
+        if (edgesTable.hasColumn(name) != false) {
+            edgesTable.removeColumn(edgesTable.getColumn(name));
+            return true;
+        }
+
+        return false;
+    }
+
     protected AttributeColumn addGraphColumn(String name, AttributeType type) {
         AttributeTable graphTable = attributeController.getModel().getGraphTable();
         if (graphTable.hasColumn(name) == false) {
@@ -46,6 +66,15 @@ public abstract class PipelineStage {
         }
 
         return graphTable.getColumn(name);
+    }
+
+    protected boolean removeGraphColumn(String name) {
+        AttributeTable graphTable = attributeController.getModel().getGraphTable();
+        if (graphTable.hasColumn(name) != false) {
+            graphTable.removeColumn(graphTable.getColumn(name));
+            return true;
+        }
+        return false;
     }
 
     public static boolean INFO = true;

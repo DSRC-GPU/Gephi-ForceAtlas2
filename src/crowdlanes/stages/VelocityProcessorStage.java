@@ -114,6 +114,7 @@ public class VelocityProcessorStage extends PipelineStage {
     @Override
     public void tearDown() {
         velocityVectors.clear();
+        removeNodeColumn(VELOCITY_VECTOR);
         //sss.tearDown();
         //csc.tearDown();
     }

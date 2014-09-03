@@ -25,6 +25,8 @@ public class EmbeddingStage extends PipelineStage {
     private int noIters;
     private String embeddingType;
     private boolean useEdgeWeights;
+    private double timeWindow;
+    private Double timeStep;
 
     public EmbeddingStage() {
         super();
@@ -95,6 +97,8 @@ public class EmbeddingStage extends PipelineStage {
     }
 
     public void setup(CurrentConfig cc) {
+        this.timeWindow = cc.getDoubleValue(CONFIG_PARAM_GRAPH_ITERATOR_WINDOW_SIZE);
+        this.timeStep = cc.getDoubleValue(CONFIG_PARAM_GRAPH_ITERATOR_STEP);
         this.seed = cc.getIntegerValue(CONFIG_PARAM_INITIAL_EMBEDDING_SEED);
         this.noIters = cc.getIntegerValue(CONFIG_PARAM_FORCE_ATLAS_NO_ITER);
         this.embeddingType = cc.getStringValue(CONFIG_PARAM_EMBEDDING_TYPE);
@@ -114,7 +118,6 @@ public class EmbeddingStage extends PipelineStage {
             default:
                 throw new IllegalArgumentException("Unkown embedding type: " + embeddingType);
         }
-        
 
         initializeEmbedding(seed);
     }
@@ -127,6 +130,8 @@ public class EmbeddingStage extends PipelineStage {
 
     @Override
     public void printParams(PrintWriter pw) {
+        pw.println(CONFIG_PARAM_GRAPH_ITERATOR_WINDOW_SIZE + ": " + this.timeWindow);
+        pw.println(CONFIG_PARAM_GRAPH_ITERATOR_STEP + ": " + this.timeStep);
         pw.println(CONFIG_PARAM_INITIAL_EMBEDDING_SEED + ": " + this.seed);
         pw.println(CONFIG_PARAM_FORCE_ATLAS_NO_ITER + ": " + this.noIters);
         pw.println(CONFIG_PARAM_EMBEDDING_TYPE + ": " + this.embeddingType);

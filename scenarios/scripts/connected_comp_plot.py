@@ -25,7 +25,7 @@ class DataFeederCC(DataFeeder):
 class ScatterPlotCC(ScatterPlot):
 
     def get_polygon(self, x, y, c):
-        color_map = ('c', 'r', 'b', 'm', 'y', 'g')
+        color_map = ('b', 'r', 'c', 'm', 'y', 'g')
         d = defaultdict(list)
 
         for p, cc in zip(zip(x, y), c):
@@ -57,10 +57,10 @@ class ScatterPlotCC(ScatterPlot):
         ax = plt.gca()
         x, y, c = next(self.stream)
         po, co = self.get_polygon(x, y, c)
-        self.poly = PolyCollection(po, facecolors = co, edgecolors='none')
+        self.poly = PolyCollection(po, facecolors = co, edgecolors='none', zorder=1)
 
         ax.add_collection(self.poly)
-        self.scat = ax.scatter(x, y, c='k', marker = self.marker, s = 25)
+        self.scat = ax.scatter(x, y, c=c, marker = self.marker, s = 10, edgecolors='none', zorder=10)
         return self.scat
 
     def update_plot(self):
@@ -87,9 +87,10 @@ def main(argv=None):
     p = ProximityGraph(argv[1], True)
     data_feeder = DataFeederCC(p, Fields.EMBEDDING_POS, time_frame)
     embedding = ScatterPlotCC(data_feeder)
-    an = AnimatedScatter([embedding], framePause = False)
+    an = AnimatedScatter([embedding])
     plt.axis('off')
-    an.get_animation().save('demo.mov', fps = 5, extra_args=['-vcodec', 'libx264'], dpi = 170)
+    #an.get_animation().save('demo.mov', fps = 5, extra_args=['-vcodec', 'libx264'], dpi = 170)
+    plt.savefig('1.pdf', format='PDF')
     #an.show()
 
 if __name__ == "__main__":

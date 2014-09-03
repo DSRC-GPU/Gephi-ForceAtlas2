@@ -20,6 +20,7 @@ import org.gephi.data.attributes.api.AttributeModel;
 import org.gephi.data.attributes.api.AttributeType;
 import org.gephi.graph.api.Edge;
 import org.gephi.graph.api.Graph;
+import org.gephi.graph.api.GraphView;
 import org.gephi.graph.api.Node;
 import org.gephi.statistics.plugin.ConnectedComponents;
 import org.openide.util.Exceptions;
@@ -52,9 +53,9 @@ public class EdgeCutingAndCCDetectionStage extends PipelineStage {
         if (GraphUtil.isEdgeColumnNull(EDGE_CUT)) {
             return;
         }
-        
 
         Graph g = graphModel.getGraphVisible();
+
         cutEdges(g);
         ConnectedComponents cc = GraphUtil.getCC();
         int[] componentsSize = cc.getComponentsSize();
@@ -84,6 +85,7 @@ public class EdgeCutingAndCCDetectionStage extends PipelineStage {
     }
 
     private void cutEdges(Graph g) {
+
         Edge[] edges = g.getEdges().toArray();
         for (Edge e : edges) {
             Boolean isCut = (Boolean) e.getAttributes().getValue(EDGE_CUT);
@@ -116,5 +118,6 @@ public class EdgeCutingAndCCDetectionStage extends PipelineStage {
         System.err.println("Avg Success Rate: " + successRate.getMean());
         results_writer.println("Avg Success Rate: " + successRate.getMean());
         results_writer.close();
+        removeGraphColumn(COMMUNITY_DETECTION);
     }
 }

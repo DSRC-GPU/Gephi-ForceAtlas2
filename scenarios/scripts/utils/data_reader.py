@@ -150,6 +150,7 @@ class ProximityGraph(object):
             raise ValueError(dname + " directory does not exist")
         self.time_intervals_start = {}
         self.time_intervals = []
+        self.name = dname
         self.read_edges = read_edges
         self.__read_nodes_file(dname)
         if read_edges:

@@ -4,6 +4,7 @@ import crowdlanes.config.ConfigParam;
 import crowdlanes.config.CurrentConfig;
 import crowdlanes.config.ResultsDir;
 import crowdlanes.graphReader.DynamicGraphIterator;
+import crowdlanes.graphReader.GraphReader;
 import crowdlanes.stages.*;
 import crowdlanes.stages.GraphPrinterStage;
 import crowdlanes.stages.dop.Dop;
@@ -14,21 +15,21 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import org.gephi.filters.api.Range;
+import org.gephi.graph.api.Edge;
 import org.gephi.graph.api.Graph;
+import org.gephi.graph.api.GraphController;
 import org.openide.util.Exceptions;
+import org.openide.util.Lookup;
 
 public class Simulation {
 
     private final String paramFileName = "params.txt";
-    private final List<PipelineStage> pipeline;
+    private List<PipelineStage> pipeline;
+    private final String gexfFile;
 
-    public Simulation() throws IllegalAccessException {
+    public Simulation(String gexfFile) throws IllegalAccessException, IOException {
+        this.gexfFile = gexfFile;
         pipeline = new ArrayList<>();
-        pipeline.add(new MovementStage());
-        pipeline.add(new VelocityProcessorStage());
-        pipeline.add(new Dop());
-        pipeline.add(new EdgeCutingAndCCDetectionStage());
-        pipeline.add(new GraphPrinterStage());
     }
 
     public void setup(CurrentConfig cc) {
@@ -50,6 +51,19 @@ public class Simulation {
     }
 
     public void run(List<ConfigParam.Value> paramVals) {
+
+        try {
+            Lookup.getDefault().lookup(GraphReader.class).importFile(gexfFile);
+        } catch (IOException ex) {
+            Exceptions.printStackTrace(ex);
+        }
+        pipeline.clear();
+        pipeline.add(new MovementStage());
+        pipeline.add(new VelocityProcessorStage());
+        pipeline.add(new Dop());
+        pipeline.add(new EdgeCutingAndCCDetectionStage());
+        pipeline.add(new GraphPrinterStage());
+
         CurrentConfig cc = new CurrentConfig(paramVals);
         setup(cc);
         int count = 0;

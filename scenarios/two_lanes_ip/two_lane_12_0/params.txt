@@ -1,0 +1,13 @@
+UseGroundTruth: false
+WindowSize: 5.0
+Step: 5.0
+InitialEmbeddingSeed: 42
+NoIters: 2147483647
+EmbeddingType: YifanHu
+UseEdgeWeights: false
+RollingWindowSize: 100
+PhiFine: 1.0
+PhiCoarse: 1.0
+NoRoundsFine: 2
+NoRoundsCoarse: 2
+WeightsType: normal

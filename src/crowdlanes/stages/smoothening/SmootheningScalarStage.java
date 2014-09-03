@@ -5,7 +5,6 @@ import crowdlanes.metrics.CosineSimilarity;
 import crowdlanes.stages.VelocityProcessorStage;
 import java.util.HashMap;
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
-import org.apache.xalan.xsltc.compiler.util.Type;
 import org.gephi.graph.api.Edge;
 import org.gephi.graph.api.Graph;
 import org.gephi.graph.api.Node;
